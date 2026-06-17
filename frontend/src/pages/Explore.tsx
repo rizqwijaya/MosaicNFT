@@ -55,30 +55,49 @@ export default function Explore() {
     (!showAuction || auctions.length === 0) &&
     (!showLazy || vouchers.length === 0);
 
+  const liveCount =
+    (showFixed ? listings.length : 0) +
+    (showAuction ? auctions.length : 0) +
+    (showLazy ? vouchers.length : 0);
+
   return (
     <div>
       {/* Hero */}
-      <div className="mb-10">
-        <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
-          Pieces. Collected. Connected.
-        </h1>
-        <p className="mt-3 max-w-xl text-stone-500 dark:text-stone-400">
-          A living mosaic of on-chain art. Explore, collect, and create, with
-          gasless lazy minting included.
-        </p>
+      <div className="relative mb-12 overflow-hidden rounded-[2rem] glass px-6 py-14 sm:px-12 sm:py-20">
+        <div
+          className="pointer-events-none absolute -right-10 -top-20 size-72 rounded-full opacity-60 blur-3xl animate-float"
+          style={{ background: "radial-gradient(circle, rgba(255,107,92,0.5), transparent 70%)" }}
+        />
+        <div
+          className="pointer-events-none absolute -bottom-24 -left-10 size-72 rounded-full opacity-50 blur-3xl animate-float"
+          style={{ background: "radial-gradient(circle, rgba(139,92,246,0.45), transparent 70%)", animationDelay: "-4s" }}
+        />
+        <div className="relative">
+          <span className="inline-flex items-center gap-2 rounded-full glass-soft px-3.5 py-1.5 text-xs font-medium text-stone-300">
+            <span className="size-1.5 animate-pulse rounded-full bg-coral-400" />
+            On-chain · gasless lazy minting
+          </span>
+          <h1 className="mt-5 max-w-3xl font-display text-5xl font-bold leading-[1.05] tracking-tight sm:text-7xl">
+            <span className="text-gradient">Pieces. Collected. Connected.</span>
+          </h1>
+          <p className="mt-5 max-w-xl text-base text-stone-400 sm:text-lg">
+            A living mosaic of on-chain art. Explore, collect, and create — with
+            gasless lazy minting included.
+          </p>
+        </div>
       </div>
 
       {/* Controls */}
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="flex rounded-full border border-stone-200 p-1 dark:border-stone-800">
+      <div className="mb-7 flex flex-wrap items-center gap-3">
+        <div className="flex rounded-full glass-soft p-1">
           {(["all", "fixed", "auction", "lazy"] as Filter[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
               className={`rounded-full px-4 py-1.5 text-sm font-medium capitalize transition ${
                 filter === f
-                  ? "bg-coral-500 text-white"
-                  : "text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
+                  ? "bg-gradient-to-r from-coral-500 to-coral-600 text-white shadow-lg shadow-coral-500/30"
+                  : "text-stone-400 hover:text-white"
               }`}
             >
               {f}
@@ -94,12 +113,17 @@ export default function Explore() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as Sort)}
-          className="input max-w-[160px]"
+          className="input max-w-[170px]"
         >
           <option value="newest">Newest</option>
           <option value="price-asc">Price: low → high</option>
           <option value="price-desc">Price: high → low</option>
         </select>
+        {!loading && (
+          <span className="ml-auto text-sm text-stone-500">
+            {liveCount} {liveCount === 1 ? "piece" : "pieces"}
+          </span>
+        )}
       </div>
 
       {loading ? (
