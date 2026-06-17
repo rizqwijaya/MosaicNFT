@@ -15,6 +15,25 @@ interface Props {
   fallbackName?: string;
 }
 
+// Curated aspect ratios so tiles vary in height -> a real mosaic wall.
+// Weighted toward portrait/square; the occasional tall/wide adds rhythm.
+const ASPECTS = ["1 / 1", "4 / 5", "3 / 4", "4 / 5", "1 / 1", "3 / 4", "5 / 4", "2 / 3", "1 / 1", "4 / 3"];
+
+/** Stable hash of a string -> small non-negative int. */
+function hashStr(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0);
+}
+
+/** Deterministic aspect ratio for a card, keyed by its link (stable per token). */
+function aspectFor(key: string): string {
+  return ASPECTS[hashStr(key) % ASPECTS.length];
+}
+
 export function NftCard({
   to,
   tokenURI,
@@ -37,6 +56,7 @@ export function NftCard({
         ? "Auction"
         : "";
   const amount = price ?? auctionBid;
+  const aspect = aspectFor(to);
 
   return (
     <Link
@@ -45,19 +65,22 @@ export function NftCard({
       style={{ ["--i" as string]: index }}
     >
       <div className="card group-hover:-translate-y-1.5">
-        {/* Media */}
-        <div className="relative overflow-hidden">
+        {/* Media (deterministic aspect ratio for a varied mosaic) */}
+        <div
+          className="relative w-full overflow-hidden"
+          style={{ aspectRatio: aspect }}
+        >
           {loading ? (
-            <div className="skeleton aspect-square w-full" />
+            <div className="skeleton size-full" />
           ) : img ? (
             <img
               src={img}
               alt={name}
               loading="lazy"
-              className="w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+              className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
             />
           ) : (
-            <div className="flex aspect-square w-full items-center justify-center text-3xl text-stone-600">
+            <div className="flex size-full items-center justify-center text-3xl text-stone-600">
               ⬡
             </div>
           )}
