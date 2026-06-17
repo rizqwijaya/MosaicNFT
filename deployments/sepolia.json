@@ -1,0 +1,34 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployedAt": "2026-06-17",
+  "deployer": "0x2A4e77E5c5C2CE833303F0eCB05355B0db224856",
+  "startBlock": 11076879,
+  "contracts": {
+    "MosaicERC721": {
+      "address": "0xd073a7563A7fcB3FA1651a5308C05c213430C834",
+      "deployTx": "0xbad82529eb4af3b2ace4063a54fdc0f03848559b726a2a24b616b9e7ba777abb",
+      "startBlock": 11076879,
+      "abi": "./abis/MosaicERC721.json",
+      "explorer": "https://sepolia.etherscan.io/address/0xd073a7563A7fcB3FA1651a5308C05c213430C834",
+      "name": "MosaicNFT",
+      "symbol": "MOSAIC",
+      "owner": "0x2A4e77E5c5C2CE833303F0eCB05355B0db224856"
+    },
+    "MosaicMarket": {
+      "address": "0x6f4c6951ba5dcF19952f9E7cA2D47eA1c30Ad131",
+      "deployTx": "0x156c87888739d4f63b4d11fef275ccc9fdf6c164ad0d3ed1f8bde879562cc652",
+      "startBlock": 11076879,
+      "abi": "./abis/MosaicMarket.json",
+      "explorer": "https://sepolia.etherscan.io/address/0x6f4c6951ba5dcF19952f9E7cA2D47eA1c30Ad131",
+      "owner": "0x2A4e77E5c5C2CE833303F0eCB05355B0db224856",
+      "feeRecipient": "0x2A4e77E5c5C2CE833303F0eCB05355B0db224856",
+      "marketplaceFeeBps": 250
+    }
+  },
+  "wiring": {
+    "setMarketTx": "0xc44871efa24eaa3549b6bd860d992c9b7b929e95b7ad2b6b8b4ad54b481fa66d",
+    "nftMarket": "0x6f4c6951ba5dcF19952f9E7cA2D47eA1c30Ad131",
+    "verified": true
+  }
+}

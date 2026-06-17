@@ -1,0 +1,18 @@
+{
+  "name": "mosaicnft-subgraph",
+  "version": "1.0.0",
+  "description": "The Graph subgraph indexing MosaicMarket + MosaicERC721 on Sepolia.",
+  "license": "MIT",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "auth": "graph auth",
+    "deploy": "graph deploy mosaicnft",
+    "create-local": "graph create --node http://localhost:8020/ mosaicnft",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 mosaicnft"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.98.1",
+    "@graphprotocol/graph-ts": "0.38.0"
+  }
+}

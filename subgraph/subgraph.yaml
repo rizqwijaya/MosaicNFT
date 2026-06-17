@@ -1,0 +1,76 @@
+specVersion: 1.0.0
+description: MosaicNFT marketplace indexer (Sepolia).
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: MosaicERC721
+    network: sepolia
+    source:
+      address: "0xd073a7563A7fcB3FA1651a5308C05c213430C834"
+      abi: MosaicERC721
+      startBlock: 11076879
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Collection
+        - Token
+        - User
+      abis:
+        - name: MosaicERC721
+          file: ./abis/MosaicERC721.json
+      eventHandlers:
+        - event: Minted(indexed uint256,indexed address,string)
+          handler: handleMinted
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+      file: ./src/mappings.ts
+  - kind: ethereum
+    name: MosaicMarket
+    network: sepolia
+    source:
+      address: "0x6f4c6951ba5dcF19952f9E7cA2D47eA1c30Ad131"
+      abi: MosaicMarket
+      startBlock: 11076879
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Collection
+        - Token
+        - Listing
+        - Auction
+        - Bid
+        - Offer
+        - Sale
+        - User
+      abis:
+        - name: MosaicMarket
+          file: ./abis/MosaicMarket.json
+      eventHandlers:
+        - event: ItemListed(indexed address,indexed uint256,indexed address,uint256)
+          handler: handleItemListed
+        - event: ListingCancelled(indexed address,indexed uint256,indexed address)
+          handler: handleListingCancelled
+        - event: ItemSold(indexed address,indexed uint256,address,indexed address,uint256)
+          handler: handleItemSold
+        - event: LazyMintSold(indexed address,indexed uint256,address,indexed address,uint256)
+          handler: handleLazyMintSold
+        - event: AuctionCreated(indexed uint256,indexed address,indexed uint256,address,uint256,uint256)
+          handler: handleAuctionCreated
+        - event: BidPlaced(indexed uint256,indexed address,uint256)
+          handler: handleBidPlaced
+        - event: AuctionSettled(indexed uint256,indexed address,uint256)
+          handler: handleAuctionSettled
+        - event: OfferMade(indexed uint256,indexed address,indexed uint256,address,uint256)
+          handler: handleOfferMade
+        - event: OfferCancelled(indexed uint256)
+          handler: handleOfferCancelled
+        - event: OfferAccepted(indexed uint256,indexed address,indexed address,uint256)
+          handler: handleOfferAccepted
+        - event: ProceedsWithdrawn(indexed address,uint256)
+          handler: handleProceedsWithdrawn
+      file: ./src/mappings.ts

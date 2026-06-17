@@ -1,0 +1,99 @@
+# MosaicNFT subgraph schema (§5).
+# Entities are derived from MosaicMarket + MosaicERC721 events.
+
+type Collection @entity(immutable: false) {
+  "Contract address (lowercase hex)."
+  id: ID!
+  address: Bytes!
+  name: String
+  tokens: [Token!]! @derivedFrom(field: "collection")
+}
+
+type Token @entity(immutable: false) {
+  "collection address + '-' + tokenId."
+  id: ID!
+  collection: Collection!
+  tokenId: BigInt!
+  creator: User
+  owner: User
+  tokenURI: String
+  createdAt: BigInt
+  listing: Listing @derivedFrom(field: "token")
+  auctions: [Auction!]! @derivedFrom(field: "token")
+  offers: [Offer!]! @derivedFrom(field: "token")
+  sales: [Sale!]! @derivedFrom(field: "token")
+}
+
+type Listing @entity(immutable: false) {
+  "collection-tokenId (one active listing per token at a time)."
+  id: ID!
+  token: Token!
+  seller: User!
+  price: BigInt!
+  active: Boolean!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+type Auction @entity(immutable: false) {
+  "auctionId."
+  id: ID!
+  token: Token!
+  seller: User!
+  startPrice: BigInt!
+  highestBid: BigInt!
+  highestBidder: User
+  endTime: BigInt!
+  settled: Boolean!
+  createdAt: BigInt!
+  bids: [Bid!]! @derivedFrom(field: "auction")
+}
+
+type Bid @entity(immutable: true) {
+  "txHash-logIndex."
+  id: ID!
+  auction: Auction!
+  bidder: User!
+  amount: BigInt!
+  timestamp: BigInt!
+}
+
+type Offer @entity(immutable: false) {
+  "offerId."
+  id: ID!
+  token: Token!
+  buyer: User!
+  amount: BigInt!
+  active: Boolean!
+  createdAt: BigInt!
+}
+
+type Sale @entity(immutable: true) {
+  "txHash-logIndex."
+  id: ID!
+  token: Token!
+  seller: User
+  buyer: User!
+  price: BigInt!
+  "FIXED | AUCTION | LAZY"
+  kind: SaleKind!
+  timestamp: BigInt!
+}
+
+enum SaleKind {
+  FIXED
+  AUCTION
+  LAZY
+}
+
+type User @entity(immutable: false) {
+  "Address (lowercase hex)."
+  id: ID!
+  address: Bytes!
+  "Tokens currently owned (maintained via Transfer)."
+  ownedTokens: [Token!]! @derivedFrom(field: "owner")
+  "Tokens this user created/minted."
+  createdTokens: [Token!]! @derivedFrom(field: "creator")
+  "Total wei withdrawn via withdrawProceeds (running total)."
+  totalWithdrawn: BigInt!
+}
