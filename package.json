@@ -1,0 +1,13 @@
+{
+  "name": "mosaicnft",
+  "private": true,
+  "version": "0.0.0",
+  "description": "MosaicNFT monorepo root. Delegates app scripts to the frontend workspace.",
+  "scripts": {
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "preview": "npm run preview --prefix frontend",
+    "lint": "npm run lint --prefix frontend",
+    "install:frontend": "npm install --prefix frontend"
+  }
+}
