@@ -3,7 +3,7 @@
     "id": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA-1",
     "collection": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA",
     "name": "Coral Drift #01",
-    "image": "/api/dev-art/1.svg",
+    "image": "https://images.unsplash.com/photo-1517999144091-3d9dca6d1e43?w=700&h=700&fit=crop&q=80&sat=-100",
     "redeemed": false,
     "createdAt": 1750000000010,
     "voucher": {
@@ -19,7 +19,7 @@
     "id": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA-2",
     "collection": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA",
     "name": "Tessellate #02",
-    "image": "/api/dev-art/2.svg",
+    "image": "https://images.unsplash.com/photo-1536566482680-fca31930a0bd?w=700&h=700&fit=crop&q=80&sat=-100",
     "redeemed": false,
     "createdAt": 1750000000020,
     "voucher": {
@@ -35,7 +35,7 @@
     "id": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA-3",
     "collection": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA",
     "name": "Fault Lines #03",
-    "image": "/api/dev-art/3.svg",
+    "image": "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=700&h=700&fit=crop&q=80&sat=-100",
     "redeemed": false,
     "createdAt": 1750000000030,
     "voucher": {
@@ -51,7 +51,7 @@
     "id": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA-4",
     "collection": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA",
     "name": "Quiet Static #04",
-    "image": "/api/dev-art/4.svg",
+    "image": "https://images.unsplash.com/photo-1487147264018-f937fba0c817?w=700&h=700&fit=crop&q=80&sat=-100",
     "redeemed": false,
     "createdAt": 1750000000040,
     "voucher": {
@@ -67,7 +67,7 @@
     "id": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA-5",
     "collection": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA",
     "name": "Amber Grid #05",
-    "image": "/api/dev-art/5.svg",
+    "image": "https://images.unsplash.com/photo-1502691876148-a84978e59af8?w=700&h=700&fit=crop&q=80&sat=-100",
     "redeemed": false,
     "createdAt": 1750000000050,
     "voucher": {
@@ -83,7 +83,7 @@
     "id": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA-6",
     "collection": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA",
     "name": "Slow Bloom #06",
-    "image": "/api/dev-art/6.svg",
+    "image": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=700&h=700&fit=crop&q=80&sat=-100",
     "redeemed": false,
     "createdAt": 1750000000060,
     "voucher": {
@@ -99,7 +99,7 @@
     "id": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA-7",
     "collection": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA",
     "name": "Night Garden #07",
-    "image": "/api/dev-art/7.svg",
+    "image": "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=700&h=700&fit=crop&q=80&sat=-100",
     "redeemed": false,
     "createdAt": 1750000000070,
     "voucher": {
@@ -115,7 +115,7 @@
     "id": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA-8",
     "collection": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA",
     "name": "Paper Tide #08",
-    "image": "/api/dev-art/8.svg",
+    "image": "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=700&h=700&fit=crop&q=80&sat=-100",
     "redeemed": false,
     "createdAt": 1750000000080,
     "voucher": {
@@ -131,7 +131,7 @@
     "id": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA-9",
     "collection": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA",
     "name": "Copper Veins #09",
-    "image": "/api/dev-art/9.svg",
+    "image": "https://images.unsplash.com/photo-1516981879613-9f5da904015f?w=700&h=700&fit=crop&q=80&sat=-100",
     "redeemed": false,
     "createdAt": 1750000000090,
     "voucher": {
@@ -147,7 +147,7 @@
     "id": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA-10",
     "collection": "0xDEM0C0LLECT10NAAAAAAAAAAAAAAAAAAAAAAAAA",
     "name": "Dawn Mosaic #10",
-    "image": "/api/dev-art/10.svg",
+    "image": "https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?w=700&h=700&fit=crop&q=80&sat=-100",
     "redeemed": false,
     "createdAt": 1750000000100,
     "voucher": {

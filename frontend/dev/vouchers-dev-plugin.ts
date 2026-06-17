@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import type { Plugin, Connect } from "vite";
-import { mosaicSvg } from "./art";
 
 // Dev-only mock for the Netlify-function API routes.
 //
@@ -11,7 +10,6 @@ import { mosaicSvg } from "./art";
 // This middleware serves:
 //   - /api/vouchers[/:collection/:nonce]  -> seeded lazy-mint voucher records
 //   - /api/dev-meta/:nonce                -> token metadata JSON for a voucher
-//   - /api/dev-art/:nonce.svg             -> deterministic generative artwork
 // In production the real Netlify function (backed by Netlify Blobs) handles
 // the voucher routes, and real metadata/images live on IPFS. This plugin is
 // `apply: "serve"` only and never ships to the build.
@@ -52,18 +50,6 @@ export function vouchersDevPlugin(): Plugin {
     name: "mosaic-vouchers-dev",
     apply: "serve",
     configureServer(server) {
-      // --- Generative artwork (SVG) ---
-      server.middlewares.use("/api/dev-art", (req, res, next) => {
-        const path = (req.url || "/").split("?")[0];
-        const m = path.match(/\/(\d+)(?:\.svg)?$/);
-        if (!m) return next();
-        const svg = mosaicSvg(Number(m[1]));
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "image/svg+xml");
-        res.setHeader("Cache-Control", "public, max-age=86400");
-        res.end(svg);
-      });
-
       // --- Token metadata JSON for a voucher nonce ---
       server.middlewares.use("/api/dev-meta", (req, res, next) => {
         const path = (req.url || "/").split("?")[0];
@@ -79,7 +65,7 @@ export function vouchersDevPlugin(): Plugin {
         sendJson(res, {
           name: rec.name ?? `Mosaic #${n}`,
           description: "A demo lazy-mint piece on the Mosaic gallery.",
-          image: rec.image ?? `/api/dev-art/${n}.svg`,
+          image: rec.image ?? "",
         });
       });
 
