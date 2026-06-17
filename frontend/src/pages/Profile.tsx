@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "urql";
 import { useAccount, useReadContract } from "wagmi";
 import { USER_PROFILE } from "../lib/queries";
@@ -16,8 +16,21 @@ type Tab = "owned" | "created" | "activity";
 export default function Profile() {
   const { address: routeAddr } = useParams();
   const { address: connected } = useAccount();
+  const navigate = useNavigate();
   const id = (routeAddr ?? "").toLowerCase();
   const isSelf = !!connected && connected.toLowerCase() === id;
+
+  // When the active MetaMask account changes, follow it: snap the Profile route
+  // to the newly connected wallet so it never shows a stale, different account.
+  const prevConnected = useRef<string | undefined>(connected);
+  useEffect(() => {
+    if (connected && connected !== prevConnected.current) {
+      prevConnected.current = connected;
+      if (connected.toLowerCase() !== id) {
+        navigate(`/u/${connected}`, { replace: true });
+      }
+    }
+  }, [connected, id, navigate]);
 
   const [tab, setTab] = useState<Tab>("owned");
   const [profileRes, refetch] = useQuery<{
@@ -28,7 +41,29 @@ export default function Profile() {
       createdTokens: GqlToken[];
     } | null;
     sales: GqlSale[];
-  }>({ query: USER_PROFILE, variables: { id } });
+  }>({
+    query: USER_PROFILE,
+    variables: { id },
+    // Always hit the network: the subgraph indexes a few blocks behind a mint,
+    // so a cached "no tokens" result would otherwise stick around.
+    requestPolicy: "network-only",
+  });
+
+  // The subgraph lags the chain by a few blocks after a mint/buy. Poll a few
+  // times on mount so a freshly bought token appears without a manual refresh.
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    if (!id) return;
+    let tries = 0;
+    pollRef.current = setInterval(() => {
+      tries += 1;
+      refetch({ requestPolicy: "network-only" });
+      if (tries >= 6 && pollRef.current) clearInterval(pollRef.current);
+    }, 5000);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [id, refetch]);
 
   const { data: proceeds, refetch: refetchProceeds } = useReadContract({
     address: MOSAIC_MARKET,
@@ -75,6 +110,24 @@ export default function Profile() {
         </div>
       </div>
 
+      {/* Different-account notice: the connected wallet is not the profile shown. */}
+      {connected && !isSelf && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-coral-500/30 bg-coral-500/10 px-5 py-3.5 text-sm">
+          <div className="text-stone-200">
+            You are viewing{" "}
+            <span className="font-medium">{shortAddr(id)}</span>. Your connected
+            wallet is{" "}
+            <span className="font-medium text-coral-300">
+              {shortAddr(connected)}
+            </span>
+            . NFTs you bought live on the wallet you paid with.
+          </div>
+          <Link to={`/u/${connected}`} className="btn-primary shrink-0">
+            View my profile
+          </Link>
+        </div>
+      )}
+
       {/* tabs */}
       <div className="mb-6 flex gap-1 border-b border-stone-200 dark:border-stone-800">
         {(["owned", "created", "activity"] as Tab[]).map((t) => (
@@ -92,7 +145,13 @@ export default function Profile() {
         ))}
       </div>
 
-      {profileRes.fetching ? (
+      {profileRes.error && (
+        <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-3.5 text-sm text-red-200">
+          Failed to load profile data: {profileRes.error.message}
+        </div>
+      )}
+
+      {profileRes.fetching && !profileRes.data ? (
         <CardSkeletonGrid count={4} />
       ) : tab === "activity" ? (
         sales.length === 0 ? (

@@ -9,4 +9,8 @@ export const graphClient = new Client({
   url: SUBGRAPH_URL,
   exchanges: [cacheExchange, fetchExchange],
   requestPolicy: "cache-and-network",
+  // @urql/core v6 defaults query requests to GET. The Graph's Studio endpoint
+  // redirects GET to its GraphiQL UI (HTML), which breaks every query. Force
+  // POST so requests hit the GraphQL API and return JSON.
+  preferGetMethod: false,
 });
