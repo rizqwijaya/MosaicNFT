@@ -59,7 +59,3 @@ cd frontend && npm install && npx netlify dev
 
 `forge install` restores contract deps (OpenZeppelin v5.6.1, forge-std). Copy
 `.env.example` to `.env` in `contracts/` and `frontend/` and fill in values.
-
-## License
-
-MIT
