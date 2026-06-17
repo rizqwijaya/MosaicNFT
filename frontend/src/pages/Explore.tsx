@@ -81,7 +81,7 @@ export default function Explore() {
             <span className="text-gradient">Pieces. Collected. Connected.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base text-stone-400 sm:text-lg">
-            A living mosaic of on-chain art. Explore, collect, and create — with
+            A living mosaic of on-chain art. Explore, collect, and create, with
             gasless lazy minting included.
           </p>
         </div>

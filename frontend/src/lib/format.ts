@@ -54,7 +54,7 @@ export function humanizeError(err: unknown): string {
   if (lower.includes("bidtoolow")) return "Your bid must beat the current bid.";
   if (lower.includes("auctionended")) return "This auction has already ended.";
   if (lower.includes("auctionnotended"))
-    return "The auction hasn't ended yet — can't settle.";
+    return "The auction hasn't ended yet, can't settle.";
   if (lower.includes("noncealreadyused"))
     return "This lazy-mint voucher was already redeemed.";
   if (lower.includes("invalidsignature"))
