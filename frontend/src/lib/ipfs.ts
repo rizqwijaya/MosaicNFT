@@ -8,6 +8,8 @@ export function ipfsToHttp(uri: string | null | undefined): string {
   if (!uri) return "";
   if (uri.startsWith("ipfs://")) return GATEWAY + uri.slice("ipfs://".length);
   if (uri.startsWith("http")) return uri;
+  // Same-origin path (e.g. dev-served art) or data URI: use verbatim.
+  if (uri.startsWith("/") || uri.startsWith("data:")) return uri;
   return GATEWAY + uri;
 }
 

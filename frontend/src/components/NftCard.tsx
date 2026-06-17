@@ -66,12 +66,12 @@ export function NftCard({
           <div className="min-w-0">
             <div className="truncate font-display font-medium">{name}</div>
             <div className="text-xs text-stone-500 dark:text-stone-400">
-              {price != null
-                ? "Fixed price"
-                : auctionBid != null
-                  ? "Auction"
-                  : lazy
-                    ? "Mint to buy"
+              {lazy
+                ? "Mint to buy"
+                : price != null
+                  ? "Fixed price"
+                  : auctionBid != null
+                    ? "Auction"
                     : ""}
             </div>
           </div>
