@@ -7,7 +7,7 @@ import { useMetadata } from "../hooks/useMetadata";
 import { useMarket } from "../hooks/useMarket";
 import { getVoucher, markRedeemed } from "../lib/vouchers";
 import { ipfsToHttp, fetchMetadata, type TokenMetadata } from "../lib/ipfs";
-import { fmtEth, shortAddr, timeLeft, fmtDate } from "../lib/format";
+import { fmtEth, shortAddr, timeLeft, fmtDate, CURRENCY } from "../lib/format";
 import { Skeleton } from "../components/Skeleton";
 import type { GqlToken, VoucherRecord } from "../lib/types";
 import { formatEther } from "viem";
@@ -319,7 +319,7 @@ function OwnerActions({
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               className="input"
-              placeholder="Start price (ETH)"
+              placeholder="Start price (Sepolia ETH)"
             />
             <input
               value={days}
@@ -388,7 +388,7 @@ function OffersBlock({
                 className="flex items-center justify-between rounded-xl bg-stone-50 px-3 py-2 text-sm dark:bg-stone-800/50"
               >
                 <span className="font-medium text-coral-600 dark:text-coral-400">
-                  {fmtEth(o.amount)} Ξ
+                  {fmtEth(o.amount)} {CURRENCY}
                 </span>
                 <span className="text-stone-500">{shortAddr(o.buyer.id)}</span>
                 {isOwner && (
@@ -441,7 +441,7 @@ function Activity({
               {shortAddr(s.seller?.id)} → {shortAddr(s.buyer.id)}
             </span>
             <span className="font-medium text-coral-600 dark:text-coral-400">
-              {fmtEth(s.price)} Ξ
+              {fmtEth(s.price)} {CURRENCY}
             </span>
             <span className="text-xs text-stone-400">{fmtDate(s.timestamp)}</span>
           </div>
@@ -456,7 +456,7 @@ function PriceTag({ label, wei }: { label: string; wei: string }) {
     <div>
       <div className="text-xs text-stone-500">{label}</div>
       <div className="font-display text-3xl font-bold text-coral-600 dark:text-coral-400">
-        {fmtEth(wei)} <span className="text-xl">Ξ</span>
+        {fmtEth(wei)} <span className="text-base font-medium">{CURRENCY}</span>
       </div>
     </div>
   );
@@ -536,7 +536,7 @@ function LazyDetail({ collection, nonce }: { collection: string; nonce: string }
               onClick={handleBuy}
               className="btn-primary mt-4 w-full"
             >
-              Mint &amp; buy for {fmtEth(rec.voucher.minPrice)} Ξ
+              Mint &amp; buy for {fmtEth(rec.voucher.minPrice)} {CURRENCY}
             </button>
           )}
         </div>

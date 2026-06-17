@@ -10,10 +10,28 @@ import type { GqlListing, GqlAuction, VoucherRecord } from "../lib/types";
 type Filter = "all" | "fixed" | "auction" | "lazy";
 type Sort = "newest" | "price-asc" | "price-desc";
 
+const PAGE_SIZE = 12; // max tiles per page (4 columns x 3 rows on xl)
+
+// Unified descriptor so listings, auctions, and vouchers paginate together.
+interface Item {
+  key: string;
+  to: string;
+  tokenURI?: string | null;
+  name: string; // for search + sort fallback
+  sortPrice: bigint; // for price sorting
+  createdAt: number; // for "newest"
+  price?: string | null;
+  auctionBid?: string | null;
+  auctionEnd?: string | null;
+  lazy?: boolean;
+  fallbackName?: string;
+}
+
 export default function Explore() {
   const [filter, setFilter] = useState<Filter>("all");
   const [sort, setSort] = useState<Sort>("newest");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [vouchers, setVouchers] = useState<VoucherRecord[]>([]);
 
   const [listingsRes] = useQuery<{ listings: GqlListing[] }>({
@@ -31,34 +49,85 @@ export default function Explore() {
 
   const loading = listingsRes.fetching || auctionsRes.fetching;
 
-  const listings = useMemo(() => {
-    let arr = listingsRes.data?.listings ?? [];
-    if (sort === "price-asc")
-      arr = [...arr].sort((a, b) => Number(BigInt(a.price) - BigInt(b.price)));
-    if (sort === "price-desc")
-      arr = [...arr].sort((a, b) => Number(BigInt(b.price) - BigInt(a.price)));
-    return arr;
-  }, [listingsRes.data, sort]);
-
-  const auctions = auctionsRes.data?.auctions ?? [];
-
-  const matches = (s?: string | null) =>
-    !search || (s ?? "").toLowerCase().includes(search.toLowerCase());
-
   const showFixed = filter === "all" || filter === "fixed";
   const showAuction = filter === "all" || filter === "auction";
   const showLazy = filter === "all" || filter === "lazy";
 
-  const nothing =
-    !loading &&
-    (!showFixed || listings.length === 0) &&
-    (!showAuction || auctions.length === 0) &&
-    (!showLazy || vouchers.length === 0);
+  // Build the full, filtered, sorted item list.
+  const items = useMemo<Item[]>(() => {
+    const listings = listingsRes.data?.listings ?? [];
+    const auctions = auctionsRes.data?.auctions ?? [];
+    const all: Item[] = [];
 
-  const liveCount =
-    (showFixed ? listings.length : 0) +
-    (showAuction ? auctions.length : 0) +
-    (showLazy ? vouchers.length : 0);
+    if (showAuction)
+      for (const a of auctions) {
+        const bid = a.highestBid !== "0" ? a.highestBid : a.startPrice;
+        all.push({
+          key: `a-${a.id}`,
+          to: `/item/${a.token?.collection.id}/${a.token?.tokenId}`,
+          tokenURI: a.token?.tokenURI,
+          name: a.token?.tokenURI ?? "",
+          sortPrice: BigInt(bid ?? "0"),
+          createdAt: Number(a.endTime ?? 0),
+          auctionBid: bid,
+          auctionEnd: a.endTime,
+        });
+      }
+    if (showFixed)
+      for (const l of listings) {
+        all.push({
+          key: `l-${l.id}`,
+          to: `/item/${l.token?.collection.id}/${l.token?.tokenId}`,
+          tokenURI: l.token?.tokenURI,
+          name: l.token?.tokenURI ?? "",
+          sortPrice: BigInt(l.price ?? "0"),
+          createdAt: Number(l.createdAt ?? 0),
+          price: l.price,
+        });
+      }
+    if (showLazy)
+      for (const v of vouchers) {
+        all.push({
+          key: `v-${v.id}`,
+          to: `/lazy/${v.collection}/${v.voucher.nonce}`,
+          tokenURI: v.voucher.uri,
+          name: v.name ?? "",
+          sortPrice: BigInt(v.voucher.minPrice ?? "0"),
+          createdAt: v.createdAt ?? 0,
+          price: v.voucher.minPrice,
+          lazy: true,
+          fallbackName: v.name,
+        });
+      }
+
+    const q = search.trim().toLowerCase();
+    const filtered = q
+      ? all.filter((it) => it.name.toLowerCase().includes(q))
+      : all;
+
+    const sorted = [...filtered];
+    if (sort === "newest") sorted.sort((a, b) => b.createdAt - a.createdAt);
+    if (sort === "price-asc")
+      sorted.sort((a, b) => (a.sortPrice < b.sortPrice ? -1 : a.sortPrice > b.sortPrice ? 1 : 0));
+    if (sort === "price-desc")
+      sorted.sort((a, b) => (b.sortPrice < a.sortPrice ? -1 : b.sortPrice > a.sortPrice ? 1 : 0));
+    return sorted;
+  }, [listingsRes.data, auctionsRes.data, vouchers, showFixed, showAuction, showLazy, search, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = items.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  );
+
+  // Reset to page 1 whenever the filtered set changes.
+  useEffect(() => {
+    setPage(1);
+  }, [filter, sort, search]);
+
+  const nothing = !loading && items.length === 0;
+  const liveCount = items.length;
 
   return (
     <div>
@@ -134,46 +203,81 @@ export default function Explore() {
           hint="Be the first. Head to Create to mint or lazy-list a piece."
         />
       ) : (
-        <Masonry>
-          {showAuction &&
-            auctions
-              .filter((a) => matches(a.token?.tokenURI))
-              .map((a, i) => (
-                <NftCard
-                  key={`a-${a.id}`}
-                  index={i}
-                  to={`/item/${a.token?.collection.id}/${a.token?.tokenId}`}
-                  tokenURI={a.token?.tokenURI}
-                  auctionBid={a.highestBid !== "0" ? a.highestBid : a.startPrice}
-                  auctionEnd={a.endTime}
-                />
-              ))}
-          {showFixed &&
-            listings
-              .filter((l) => matches(l.token?.tokenURI))
-              .map((l, i) => (
-                <NftCard
-                  key={`l-${l.id}`}
-                  index={i}
-                  to={`/item/${l.token?.collection.id}/${l.token?.tokenId}`}
-                  tokenURI={l.token?.tokenURI}
-                  price={l.price}
-                />
-              ))}
-          {showLazy &&
-            vouchers.map((v, i) => (
+        <>
+          <Masonry>
+            {pageItems.map((it, i) => (
               <NftCard
-                key={`v-${v.id}`}
+                key={it.key}
                 index={i}
-                to={`/lazy/${v.collection}/${v.voucher.nonce}`}
-                tokenURI={v.voucher.uri}
-                price={v.voucher.minPrice}
-                lazy
-                fallbackName={v.name}
+                to={it.to}
+                tokenURI={it.tokenURI}
+                price={it.price}
+                auctionBid={it.auctionBid}
+                auctionEnd={it.auctionEnd}
+                lazy={it.lazy}
+                fallbackName={it.fallbackName}
               />
             ))}
-        </Masonry>
+          </Masonry>
+
+          {totalPages > 1 && (
+            <Pager
+              page={safePage}
+              totalPages={totalPages}
+              onChange={(p) => {
+                setPage(p);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
+          )}
+        </>
       )}
     </div>
+  );
+}
+
+function Pager({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (p: number) => void;
+}) {
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  return (
+    <nav className="mt-12 flex items-center justify-center gap-2">
+      <button
+        onClick={() => onChange(page - 1)}
+        disabled={page === 1}
+        className="btn-ghost size-10 !px-0 disabled:opacity-40"
+        aria-label="Previous page"
+      >
+        ‹
+      </button>
+      {pages.map((p) => (
+        <button
+          key={p}
+          onClick={() => onChange(p)}
+          aria-current={p === page ? "page" : undefined}
+          className={`size-10 rounded-full text-sm font-medium transition ${
+            p === page
+              ? "bg-gradient-to-r from-coral-500 to-coral-600 text-white shadow-lg shadow-coral-500/30"
+              : "glass-soft text-stone-300 hover:text-white"
+          }`}
+        >
+          {p}
+        </button>
+      ))}
+      <button
+        onClick={() => onChange(page + 1)}
+        disabled={page === totalPages}
+        className="btn-ghost size-10 !px-0 disabled:opacity-40"
+        aria-label="Next page"
+      >
+        ›
+      </button>
+    </nav>
   );
 }

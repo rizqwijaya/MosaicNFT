@@ -1,5 +1,8 @@
 import { formatEther } from "viem";
 
+/** Display label for the native token (Sepolia testnet ETH). */
+export const CURRENCY = "Sepolia ETH";
+
 export function shortAddr(addr?: string | null): string {
   if (!addr) return "";
   return addr.slice(0, 6) + "…" + addr.slice(-4);

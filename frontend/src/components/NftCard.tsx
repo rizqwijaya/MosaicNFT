@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useMetadata } from "../hooks/useMetadata";
 import { ipfsToHttp } from "../lib/ipfs";
-import { fmtEth, timeLeft } from "../lib/format";
+import { fmtEth, timeLeft, CURRENCY } from "../lib/format";
 
 interface Props {
   to: string;
@@ -89,10 +89,10 @@ export function NftCard({
           {amount != null && (
             <div className="shrink-0 text-right">
               <div className="text-[10px] uppercase tracking-wider text-stone-500">
-                Price
+                {CURRENCY}
               </div>
               <div className="font-display text-base font-bold text-coral-400">
-                {fmtEth(amount)} Ξ
+                {fmtEth(amount)}
               </div>
             </div>
           )}

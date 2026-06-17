@@ -181,7 +181,7 @@ export default function Create() {
           </div>
           {mode === "lazy" && (
             <div>
-              <label className="mb-1.5 block text-sm font-medium">Price (ETH)</label>
+              <label className="mb-1.5 block text-sm font-medium">Price (Sepolia ETH)</label>
               <input value={price} onChange={(e) => setPrice(e.target.value)} className="input" inputMode="decimal" />
             </div>
           )}

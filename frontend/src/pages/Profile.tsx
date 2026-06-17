@@ -8,7 +8,7 @@ import { NftCard } from "../components/NftCard";
 import { CardSkeletonGrid } from "../components/Skeleton";
 import { useMarket } from "../hooks/useMarket";
 import { MOSAIC_MARKET, marketAbi } from "../lib/contracts";
-import { fmtEth, shortAddr, fmtDate } from "../lib/format";
+import { fmtEth, shortAddr, fmtDate, CURRENCY } from "../lib/format";
 import type { GqlToken, GqlSale } from "../lib/types";
 
 type Tab = "owned" | "created" | "activity";
@@ -60,7 +60,7 @@ export default function Profile() {
           <div>
             <div className="text-xs text-stone-500">Withdrawable</div>
             <div className="font-display text-xl font-bold text-coral-600 dark:text-coral-400">
-              {fmtEth(proceedsWei)} Ξ
+              {fmtEth(proceedsWei)} {CURRENCY}
             </div>
           </div>
           {isSelf && (
@@ -111,7 +111,7 @@ export default function Profile() {
                   {shortAddr(s.seller?.id)} → {shortAddr(s.buyer.id)}
                 </span>
                 <span className="font-medium text-coral-600 dark:text-coral-400">
-                  {fmtEth(s.price)} Ξ
+                  {fmtEth(s.price)} {CURRENCY}
                 </span>
                 <span className="text-xs text-stone-400">{fmtDate(s.timestamp)}</span>
               </div>
