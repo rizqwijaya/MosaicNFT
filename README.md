@@ -60,13 +60,6 @@ cd frontend && npm install && npx netlify dev
 `forge install` restores contract deps (OpenZeppelin v5.6.1, forge-std). Copy
 `.env.example` to `.env` in `contracts/` and `frontend/` and fill in values.
 
-## Royalty enforcement note
-
-EIP-2981 is a *signal*, not self-enforcing. Royalties are enforced at the
-marketplace level: MosaicMarket reads `royaltyInfo` and pays the receiver on
-every secondary sale (fixed-price, auction, accepted offer) by construction.
-Primary lazy-mint sales pay the creator directly with no separate royalty cut.
-
 ## License
 
 MIT
