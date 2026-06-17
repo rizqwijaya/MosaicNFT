@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+/* Dark mode driven by a class on <html> (toggled in ThemeToggle). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Type */
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Burnt Coral accent over warm stone neutral base */
+  --color-coral-50: #fff1ef;
+  --color-coral-100: #ffe0db;
+  --color-coral-200: #ffc6bd;
+  --color-coral-300: #ffa093;
+  --color-coral-400: #ff7d6b;
+  --color-coral-500: #ff6b5c;
+  --color-coral-600: #ed4733;
+  --color-coral-700: #c8341f;
+  --color-coral-800: #a52e1d;
+  --color-coral-900: #882c1f;
+
+  --radius-card: 1rem;
+  --animate-rise: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-shimmer: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -468px 0; }
+  100% { background-position: 468px 0; }
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  .dark {
+    color-scheme: dark;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* Mosaic tiles set into place on enter, staggered by index var */
+  .tile-enter {
+    animation: var(--animate-rise);
+    animation-delay: calc(var(--i, 0) * 40ms);
+  }
+}
+
+@layer components {
+  .btn, .btn-primary, .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5
+           text-sm font-medium transition active:scale-[0.98]
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-coral-500 text-white hover:bg-coral-600
+           shadow-sm shadow-coral-500/20;
+  }
+  .btn-ghost {
+    @apply border border-stone-200 bg-transparent text-stone-700
+           hover:bg-stone-100 dark:border-stone-800 dark:text-stone-300
+           dark:hover:bg-stone-900;
+  }
+  .card {
+    @apply rounded-[var(--radius-card)] border border-stone-200/70 bg-white
+           dark:border-stone-800 dark:bg-stone-900 overflow-hidden;
+  }
+  .input {
+    @apply w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm
+           outline-none transition focus:border-coral-400 focus:ring-2
+           focus:ring-coral-500/20 dark:border-stone-800 dark:bg-stone-900;
+  }
+  .skeleton {
+    @apply bg-stone-200 dark:bg-stone-800 rounded-md;
+    background-image: linear-gradient(
+      90deg,
+      transparent 0,
+      rgba(255, 255, 255, 0.12) 40px,
+      transparent 80px
+    );
+    background-size: 600px 100%;
+    background-repeat: no-repeat;
+    animation: var(--animate-shimmer);
+  }
+}

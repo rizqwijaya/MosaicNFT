@@ -1,0 +1,29 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# API routes -> functions
+[[redirects]]
+  from = "/api/pin"
+  to = "/.netlify/functions/pin"
+  status = 200
+
+[[redirects]]
+  from = "/api/vouchers"
+  to = "/.netlify/functions/vouchers"
+  status = 200
+
+[[redirects]]
+  from = "/api/vouchers/*"
+  to = "/.netlify/functions/vouchers/:splat"
+  status = 200
+
+# SPA fallback — must come last
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
