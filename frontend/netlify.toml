@@ -22,7 +22,7 @@
   to = "/.netlify/functions/vouchers/:splat"
   status = 200
 
-# SPA fallback — must come last
+# SPA fallback: must come last
 [[redirects]]
   from = "/*"
   to = "/index.html"

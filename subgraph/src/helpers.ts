@@ -41,7 +41,7 @@ export function getOrCreateCollection(address: Address): Collection {
   return collection;
 }
 
-/// Load or create a Token. Created lazily — Minted and Transfer may arrive in
+/// Load or create a Token. Created lazily: Minted and Transfer may arrive in
 /// either order, so both call this and fill the fields they own.
 export function getOrCreateToken(
   collection: Address,

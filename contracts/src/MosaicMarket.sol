@@ -16,7 +16,7 @@ interface IMosaicCollection {
         returns (uint256 tokenId);
 }
 
-/// @title MosaicMarket — the MosaicNFT marketplace.
+/// @title MosaicMarket: the MosaicNFT marketplace.
 /// @notice Fixed-price listings, English auctions, offers, and lazy-mint
 ///         purchases. Orchestrates all payments, marketplace fees, and
 ///         EIP-2981 royalty distribution.
@@ -206,7 +206,7 @@ contract MosaicMarket is Ownable, ReentrancyGuard, ERC721Holder {
     // ---------------------------------------------------------------
 
     /// @notice Buy a lazily-listed token: mints on-chain and pays the creator.
-    /// @dev Primary sale — proceeds go to the creator directly (minus fee), and
+    /// @dev Primary sale: proceeds go to the creator directly (minus fee), and
     ///      no separate EIP-2981 royalty is applied on this first sale.
     function buyLazy(address collection, MosaicERC721.NFTVoucher calldata voucher)
         external
@@ -215,10 +215,10 @@ contract MosaicMarket is Ownable, ReentrancyGuard, ERC721Holder {
     {
         if (msg.value < voucher.minPrice) revert Mosaic__InsufficientPayment();
 
-        // interaction (mint) — the collection re-verifies the signature & nonce.
+        // interaction (mint): the collection re-verifies the signature & nonce.
         uint256 tokenId = IMosaicCollection(collection).redeem(msg.sender, voucher);
 
-        // effects — primary sale split: fee + creator proceeds.
+        // effects: primary sale split: fee + creator proceeds.
         uint256 fee = (msg.value * marketplaceFeeBps) / BPS_DENOMINATOR;
         uint256 creatorProceeds = msg.value - fee;
         if (fee > 0) proceeds[feeRecipient] += fee;
@@ -394,7 +394,7 @@ contract MosaicMarket is Ownable, ReentrancyGuard, ERC721Holder {
     // ---------------------------------------------------------------
 
     /// @dev Split a secondary-sale `price` into EIP-2981 royalty, marketplace
-    ///      fee, and seller proceeds — all credited for pull-withdrawal.
+    ///      fee, and seller proceeds, all credited for pull-withdrawal.
     function _splitSecondary(
         address collection,
         uint256 tokenId,

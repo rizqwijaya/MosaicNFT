@@ -93,7 +93,7 @@ contract MosaicERC721Test is BaseTest {
         MosaicERC721.NFTVoucher memory voucher = VoucherSigner.sign(
             vm, address(nft), creatorKey, 1, 1 ether, URI, 500, creator
         );
-        // tamper minPrice after signing — signature no longer matches digest
+        // tamper minPrice after signing: signature no longer matches digest
         voucher.minPrice = 0.001 ether;
 
         vm.prank(address(market));

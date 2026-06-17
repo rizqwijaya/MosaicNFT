@@ -128,7 +128,7 @@ export default function Create() {
           active={mode === "lazy"}
           onClick={() => setMode("lazy")}
           title="Lazy list"
-          desc="Sign a voucher — no gas. Minted only when someone buys."
+          desc="Sign a voucher, no gas. Minted only when someone buys."
           badge="Recommended"
         />
         <ModeCard

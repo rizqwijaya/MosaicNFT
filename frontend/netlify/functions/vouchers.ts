@@ -3,12 +3,12 @@ import { getStore } from "@netlify/blobs";
 
 // Lazy-mint voucher store (§6a).
 //
-// Storage choice: **Netlify Blobs** — a built-in key-value store, no external
+// Storage choice: **Netlify Blobs**, a built-in key-value store, no external
 // DB to provision, keyed by `${collection}-${nonce}`. This holds ONLY the
 // already-signed voucher payload between "creator signs" and "buyer redeems".
 // It has no authority: the MosaicERC721 contract re-verifies the EIP-712
 // signature and the nonce on redeem(), so a wrong/compromised store can't forge
-// a sale — at worst a voucher is unavailable, never a fake mint.
+// a sale. At worst a voucher is unavailable, never a fake mint.
 //
 // Routes (via redirect in netlify.toml: /api/vouchers/* -> this function):
 //   GET    /api/vouchers                       -> { vouchers: [...] }   (open only)

@@ -15,12 +15,12 @@ contract MarketReentrancyTest is BaseTest {
         plain = new NoRoyalty721();
     }
 
-    /// withdrawProceeds is the only path that pushes ETH via call{} — verify a
+    /// withdrawProceeds is the only path that pushes ETH via call{}: verify a
     /// re-entrant withdraw during that call cannot drain extra funds.
     function test_Reentrancy_WithdrawIsGuarded() public {
         // attacker accrues 1 ether of proceeds by making then cancelling an
         // offer. The offer is funded by ETH the test forwards into makeOffer, so
-        // the attacker contract itself starts and stays at 0 balance — making any
+        // the attacker contract itself starts and stays at 0 balance, making any
         // post-withdraw balance attributable solely to the withdrawal path.
         uint256 offerId = attacker.makeOffer{value: 1 ether}();
         assertEq(address(attacker).balance, 0, "attacker holds no ETH pre-withdraw");

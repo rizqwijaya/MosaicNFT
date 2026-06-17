@@ -5,7 +5,7 @@ import {Script, console2} from "forge-std/Script.sol";
 import {MosaicERC721} from "../src/MosaicERC721.sol";
 import {MosaicMarket} from "../src/MosaicMarket.sol";
 
-/// @title Deploy — deploys MosaicERC721 + MosaicMarket and wires them.
+/// @title Deploy: deploys MosaicERC721 + MosaicMarket and wires them.
 /// @notice Run against Sepolia. Reads config from environment variables:
 ///
 ///   PRIVATE_KEY       (uint)    deployer key; becomes owner of both contracts

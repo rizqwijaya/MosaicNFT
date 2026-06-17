@@ -67,7 +67,7 @@ export function handleTransfer(event: Transfer): void {
 }
 
 // ---------------------------------------------------------------
-// MosaicMarket — fixed-price listings
+// MosaicMarket: fixed-price listings
 // ---------------------------------------------------------------
 
 export function handleItemListed(event: ItemListed): void {
@@ -151,7 +151,7 @@ export function handleLazyMintSold(event: LazyMintSold): void {
 }
 
 // ---------------------------------------------------------------
-// MosaicMarket — auctions
+// MosaicMarket: auctions
 // ---------------------------------------------------------------
 
 export function handleAuctionCreated(event: AuctionCreated): void {
@@ -199,7 +199,7 @@ export function handleAuctionSettled(event: AuctionSettled): void {
   auction.settled = true;
   auction.save();
 
-  // winner == address(0) means no bids — NFT returned to seller, no Sale.
+  // winner == address(0) means no bids: NFT returned to seller, no Sale.
   if (event.params.winner.equals(ZERO_ADDRESS)) return;
 
   let winner = getOrCreateUser(event.params.winner);
@@ -215,7 +215,7 @@ export function handleAuctionSettled(event: AuctionSettled): void {
 }
 
 // ---------------------------------------------------------------
-// MosaicMarket — offers
+// MosaicMarket: offers
 // ---------------------------------------------------------------
 
 export function handleOfferMade(event: OfferMade): void {
@@ -263,7 +263,7 @@ export function handleOfferAccepted(event: OfferAccepted): void {
 }
 
 // ---------------------------------------------------------------
-// MosaicMarket — proceeds
+// MosaicMarket: proceeds
 // ---------------------------------------------------------------
 
 export function handleProceedsWithdrawn(event: ProceedsWithdrawn): void {

@@ -63,7 +63,7 @@ export default function Explore() {
           Pieces. Collected. Connected.
         </h1>
         <p className="mt-3 max-w-xl text-stone-500 dark:text-stone-400">
-          A living mosaic of on-chain art. Explore, collect, and create —
+          A living mosaic of on-chain art. Explore, collect, and create, with
           gasless lazy minting included.
         </p>
       </div>
@@ -107,7 +107,7 @@ export default function Explore() {
       ) : nothing ? (
         <EmptyState
           title="Nothing here yet"
-          hint="Be the first — head to Create to mint or lazy-list a piece."
+          hint="Be the first. Head to Create to mint or lazy-list a piece."
         />
       ) : (
         <Masonry>

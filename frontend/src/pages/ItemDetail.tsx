@@ -122,7 +122,7 @@ function OnchainDetail({
             </div>
           )}
 
-          {/* offers — anyone can offer; owner can accept */}
+          {/* offers: anyone can offer; owner can accept */}
           {!auctionLive && (
             <OffersBlock
               offers={offers}
@@ -528,7 +528,7 @@ function LazyDetail({ collection, nonce }: { collection: string; nonce: string }
           </p>
           {isCreator ? (
             <div className="mt-4 text-sm text-stone-500">
-              This is your voucher — waiting for a buyer.
+              This is your voucher, waiting for a buyer.
             </div>
           ) : (
             <button
