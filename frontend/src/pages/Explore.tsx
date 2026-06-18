@@ -128,8 +128,8 @@ export default function Explore() {
             <span className="text-gradient">Pieces. Collected. Connected.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base text-stone-400 sm:text-lg">
-            A living mosaic of on-chain art. Explore, collect, and create — and
-            grab free pieces from the Airdrop page.
+            A living mosaic of on-chain art. Explore, collect, and create. Grab
+            free pieces from the Airdrop page.
           </p>
         </div>
       </div>

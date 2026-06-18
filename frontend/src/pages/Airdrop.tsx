@@ -45,7 +45,7 @@ export default function Airdrop() {
       <div className="mb-8">
         <h1 className="font-display text-3xl font-bold">Free drops</h1>
         <p className="mt-2 text-stone-500 dark:text-stone-400">
-          Claim a free piece — you pay only gas. One per wallet.
+          Claim a free piece. You pay only gas. One per wallet.
         </p>
       </div>
 

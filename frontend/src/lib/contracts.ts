@@ -1,4 +1,4 @@
-// Deployed Sepolia addresses (airdrop refactor — deployed 2026-06-18 @ block 11085853).
+// Deployed Sepolia addresses (airdrop refactor, deployed 2026-06-18 @ block 11085853).
 export const SEPOLIA_CHAIN_ID = 11155111;
 
 export const MOSAIC_ERC721 =
