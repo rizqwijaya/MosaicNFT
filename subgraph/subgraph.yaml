@@ -7,9 +7,9 @@ dataSources:
     name: MosaicERC721
     network: sepolia
     source:
-      address: "0xd073a7563A7fcB3FA1651a5308C05c213430C834"
+      address: "0xaF2aC6bB88ec5cCD406356a8884a818D8e22170C"
       abi: MosaicERC721
-      startBlock: 11076879
+      startBlock: 11085853
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -39,9 +39,9 @@ dataSources:
     name: MosaicMarket
     network: sepolia
     source:
-      address: "0x6f4c6951ba5dcF19952f9E7cA2D47eA1c30Ad131"
+      address: "0x4E6e96A3D5937FDFe39937a765929fdE87C4F88c"
       abi: MosaicMarket
-      startBlock: 11076879
+      startBlock: 11085853
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9

@@ -1,34 +1,29 @@
 {
   "network": "sepolia",
   "chainId": 11155111,
-  "deployedAt": "2026-06-17",
+  "deployedAt": "2026-06-18",
   "deployer": "0x2A4e77E5c5C2CE833303F0eCB05355B0db224856",
-  "startBlock": 11076879,
+  "startBlock": 11085853,
   "contracts": {
     "MosaicERC721": {
-      "address": "0xd073a7563A7fcB3FA1651a5308C05c213430C834",
-      "deployTx": "0xbad82529eb4af3b2ace4063a54fdc0f03848559b726a2a24b616b9e7ba777abb",
-      "startBlock": 11076879,
+      "address": "0xaF2aC6bB88ec5cCD406356a8884a818D8e22170C",
+      "deployTx": "0x9da92ecacc524b94a557a719b19218be0e81272cd5e1f237602f6e613c388eba",
+      "startBlock": 11085853,
       "abi": "./abis/MosaicERC721.json",
-      "explorer": "https://sepolia.etherscan.io/address/0xd073a7563A7fcB3FA1651a5308C05c213430C834",
+      "explorer": "https://sepolia.etherscan.io/address/0xaF2aC6bB88ec5cCD406356a8884a818D8e22170C",
       "name": "MosaicNFT",
       "symbol": "MOSAIC",
       "owner": "0x2A4e77E5c5C2CE833303F0eCB05355B0db224856"
     },
     "MosaicMarket": {
-      "address": "0x6f4c6951ba5dcF19952f9E7cA2D47eA1c30Ad131",
-      "deployTx": "0x156c87888739d4f63b4d11fef275ccc9fdf6c164ad0d3ed1f8bde879562cc652",
-      "startBlock": 11076879,
+      "address": "0x4E6e96A3D5937FDFe39937a765929fdE87C4F88c",
+      "deployTx": "0xc7b54d56494c8e3df30096fdb3f344a7a682ccdf0b4ce62c1451ea19f7e23045",
+      "startBlock": 11085853,
       "abi": "./abis/MosaicMarket.json",
-      "explorer": "https://sepolia.etherscan.io/address/0x6f4c6951ba5dcF19952f9E7cA2D47eA1c30Ad131",
+      "explorer": "https://sepolia.etherscan.io/address/0x4E6e96A3D5937FDFe39937a765929fdE87C4F88c",
       "owner": "0x2A4e77E5c5C2CE833303F0eCB05355B0db224856",
       "feeRecipient": "0x2A4e77E5c5C2CE833303F0eCB05355B0db224856",
       "marketplaceFeeBps": 250
     }
-  },
-  "wiring": {
-    "setMarketTx": "0xc44871efa24eaa3549b6bd860d992c9b7b929e95b7ad2b6b8b4ad54b481fa66d",
-    "nftMarket": "0x6f4c6951ba5dcF19952f9E7cA2D47eA1c30Ad131",
-    "verified": true
   }
 }

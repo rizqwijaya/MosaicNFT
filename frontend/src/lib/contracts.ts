@@ -1,11 +1,10 @@
-// Deployed Sepolia addresses (see deployments/sepolia.json).
-// NOTE: redeploy after the lazy->airdrop refactor and update these.
+// Deployed Sepolia addresses (airdrop refactor — deployed 2026-06-18 @ block 11085853).
 export const SEPOLIA_CHAIN_ID = 11155111;
 
 export const MOSAIC_ERC721 =
-  "0xd073a7563A7fcB3FA1651a5308C05c213430C834" as const;
+  "0xaF2aC6bB88ec5cCD406356a8884a818D8e22170C" as const;
 export const MOSAIC_MARKET =
-  "0x6f4c6951ba5dcF19952f9E7cA2D47eA1c30Ad131" as const;
+  "0x4E6e96A3D5937FDFe39937a765929fdE87C4F88c" as const;
 
 // --- ABIs (only the entries the frontend uses) ---
 
