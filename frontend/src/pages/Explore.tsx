@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "urql";
-import { ACTIVE_LISTINGS, LIVE_AUCTIONS, ACTIVE_AIRDROPS } from "../lib/queries";
+import { ACTIVE_LISTINGS, LIVE_AUCTIONS } from "../lib/queries";
 import { Masonry, EmptyState } from "../components/Masonry";
 import { NftCard } from "../components/NftCard";
 import { CardSkeletonGrid } from "../components/Skeleton";
-import type { GqlListing, GqlAuction, GqlAirdrop } from "../lib/types";
+import type { GqlListing, GqlAuction } from "../lib/types";
 
-type Filter = "all" | "fixed" | "auction" | "free";
+type Filter = "all" | "fixed" | "auction";
 type Sort = "newest" | "price-asc" | "price-desc";
 
 const PAGE_SIZE = 12; // max tiles per page (4 columns x 3 rows on xl)
 
-// Unified descriptor so listings, auctions, and airdrops paginate together.
+// Unified descriptor so listings and auctions paginate together.
 interface Item {
   key: string;
   to: string;
@@ -22,7 +22,6 @@ interface Item {
   price?: string | null;
   auctionBid?: string | null;
   auctionEnd?: string | null;
-  free?: boolean;
   fallbackName?: string;
 }
 
@@ -40,23 +39,16 @@ export default function Explore() {
     query: LIVE_AUCTIONS,
     variables: { first: 60, now: String(Math.floor(Date.now() / 1000)) },
   });
-  const [airdropsRes] = useQuery<{ airdrops: GqlAirdrop[] }>({
-    query: ACTIVE_AIRDROPS,
-    variables: { first: 60 },
-  });
 
-  const loading =
-    listingsRes.fetching || auctionsRes.fetching || airdropsRes.fetching;
+  const loading = listingsRes.fetching || auctionsRes.fetching;
 
   const showFixed = filter === "all" || filter === "fixed";
   const showAuction = filter === "all" || filter === "auction";
-  const showFree = filter === "all" || filter === "free";
 
   // Build the full, filtered, sorted item list.
   const items = useMemo<Item[]>(() => {
     const listings = listingsRes.data?.listings ?? [];
     const auctions = auctionsRes.data?.auctions ?? [];
-    const airdrops = airdropsRes.data?.airdrops ?? [];
     const all: Item[] = [];
 
     if (showAuction)
@@ -85,22 +77,6 @@ export default function Explore() {
           price: l.price,
         });
       }
-    if (showFree)
-      for (const d of airdrops) {
-        // skip exhausted campaigns (maxClaims > 0 && claimed >= maxClaims)
-        const max = BigInt(d.maxClaims ?? "0");
-        const claimed = BigInt(d.claimed ?? "0");
-        if (max !== 0n && claimed >= max) continue;
-        all.push({
-          key: `d-${d.id}`,
-          to: `/airdrop/${d.id}`,
-          tokenURI: d.uri,
-          name: "",
-          sortPrice: 0n,
-          createdAt: Number(d.createdAt ?? 0),
-          free: true,
-        });
-      }
 
     const q = search.trim().toLowerCase();
     const filtered = q
@@ -114,7 +90,7 @@ export default function Explore() {
     if (sort === "price-desc")
       sorted.sort((a, b) => (b.sortPrice < a.sortPrice ? -1 : b.sortPrice > a.sortPrice ? 1 : 0));
     return sorted;
-  }, [listingsRes.data, auctionsRes.data, airdropsRes.data, showFixed, showAuction, showFree, search, sort]);
+  }, [listingsRes.data, auctionsRes.data, showFixed, showAuction, search, sort]);
 
   const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -146,14 +122,14 @@ export default function Explore() {
         <div className="relative">
           <span className="inline-flex items-center gap-2 rounded-full glass-soft px-3.5 py-1.5 text-xs font-medium text-stone-300">
             <span className="size-1.5 animate-pulse rounded-full bg-coral-400" />
-            On-chain · free claimable drops
+            On-chain marketplace · free drops in Airdrop
           </span>
           <h1 className="mt-5 max-w-3xl font-display text-5xl font-bold leading-[1.05] tracking-tight sm:text-7xl">
             <span className="text-gradient">Pieces. Collected. Connected.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base text-stone-400 sm:text-lg">
-            A living mosaic of on-chain art. Explore, collect, and create — plus
-            free pieces you can claim.
+            A living mosaic of on-chain art. Explore, collect, and create — and
+            grab free pieces from the Airdrop page.
           </p>
         </div>
       </div>
@@ -161,7 +137,7 @@ export default function Explore() {
       {/* Controls */}
       <div className="mb-7 flex flex-wrap items-center gap-3">
         <div className="flex rounded-full glass-soft p-1">
-          {(["all", "fixed", "auction", "free"] as Filter[]).map((f) => (
+          {(["all", "fixed", "auction"] as Filter[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -216,7 +192,6 @@ export default function Explore() {
                 price={it.price}
                 auctionBid={it.auctionBid}
                 auctionEnd={it.auctionEnd}
-                free={it.free}
                 fallbackName={it.fallbackName}
               />
             ))}

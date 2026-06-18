@@ -82,6 +82,9 @@ export function Layout() {
               <NavLink to="/" end className={navClass}>
                 Explore
               </NavLink>
+              <NavLink to="/airdrop" className={navClass}>
+                Airdrop
+              </NavLink>
               <NavLink to="/create" className={navClass}>
                 Create
               </NavLink>
@@ -106,6 +109,9 @@ export function Layout() {
         <nav className="mx-auto mt-2 flex max-w-7xl items-center gap-6 rounded-full glass-soft px-5 py-2 md:hidden">
           <NavLink to="/" end className={navClass}>
             Explore
+          </NavLink>
+          <NavLink to="/airdrop" className={navClass}>
+            Airdrop
           </NavLink>
           <NavLink to="/create" className={navClass}>
             Create
