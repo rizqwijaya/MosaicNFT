@@ -7,7 +7,6 @@ import {
   erc721Abi,
   marketAbi,
 } from "../lib/contracts";
-import type { Voucher } from "../lib/types";
 
 /**
  * All marketplace write actions, each wrapped with tx toasts. Pass an
@@ -72,24 +71,35 @@ export function useMarket(onConfirmed?: () => void) {
     [tx]
   );
 
-  const buyLazy = useCallback(
-    (voucher: Voucher, payWei: bigint) =>
-      tx.run("Minting & buying", {
-        address: MOSAIC_MARKET,
-        abi: marketAbi,
-        functionName: "buyLazy",
-        args: [
-          MOSAIC_ERC721,
-          {
-            nonce: BigInt(voucher.nonce),
-            minPrice: BigInt(voucher.minPrice),
-            uri: voucher.uri,
-            royaltyBps: BigInt(voucher.royaltyBps),
-            creator: voucher.creator as `0x${string}`,
-            signature: voucher.signature as `0x${string}`,
-          },
-        ],
-        value: payWei,
+  const claimAirdrop = useCallback(
+    (airdropId: bigint) =>
+      tx.run("Claiming free NFT", {
+        address: MOSAIC_ERC721,
+        abi: erc721Abi,
+        functionName: "claimAirdrop",
+        args: [airdropId],
+      }),
+    [tx]
+  );
+
+  const createAirdrop = useCallback(
+    (uri: string, royaltyBps: number, maxClaims: number) =>
+      tx.run("Creating airdrop", {
+        address: MOSAIC_ERC721,
+        abi: erc721Abi,
+        functionName: "createAirdrop",
+        args: [uri, BigInt(royaltyBps), BigInt(maxClaims)],
+      }),
+    [tx]
+  );
+
+  const closeAirdrop = useCallback(
+    (airdropId: bigint) =>
+      tx.run("Closing airdrop", {
+        address: MOSAIC_ERC721,
+        abi: erc721Abi,
+        functionName: "closeAirdrop",
+        args: [airdropId],
       }),
     [tx]
   );
@@ -177,10 +187,12 @@ export function useMarket(onConfirmed?: () => void) {
     status: tx.status,
     approveCollection,
     mint,
+    claimAirdrop,
+    createAirdrop,
+    closeAirdrop,
     list,
     cancelListing,
     buy,
-    buyLazy,
     createAuction,
     placeBid,
     settleAuction,

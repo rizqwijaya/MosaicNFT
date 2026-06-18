@@ -3,7 +3,6 @@ pragma solidity ^0.8.24;
 
 import {BaseTest} from "./Base.t.sol";
 import {MosaicERC721} from "../src/MosaicERC721.sol";
-import {VoucherSigner} from "./helpers/VoucherSigner.sol";
 import {IERC2981} from "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -46,98 +45,130 @@ contract MosaicERC721Test is BaseTest {
         assertTrue(nft.supportsInterface(0x5b5e139f), "ERC721Metadata");
     }
 
-    // --- setMarket access control ---
+    // --- airdrop: create access control ---
 
-    function test_SetMarket_OnlyOwner() public {
+    function test_CreateAirdrop_OnlyOwner() public {
         vm.prank(buyer);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, buyer));
-        nft.setMarket(buyer);
+        nft.createAirdrop(URI, 500, 10);
     }
 
-    function test_SetMarket_RevertsZeroAddress() public {
+    function test_CreateAirdrop_RevertsRoyaltyTooHigh() public {
         vm.prank(owner);
-        vm.expectRevert(MosaicERC721.MosaicERC721__ZeroAddress.selector);
-        nft.setMarket(address(0));
-    }
-
-    // --- redeem: access control ---
-
-    function test_Redeem_OnlyMarket() public {
-        MosaicERC721.NFTVoucher memory voucher = VoucherSigner.sign(
-            vm, address(nft), creatorKey, 1, 1 ether, URI, 500, creator
-        );
-        // direct caller (not market) must revert
-        vm.prank(buyer);
-        vm.expectRevert(MosaicERC721.MosaicERC721__NotMarket.selector);
-        nft.redeem(buyer, voucher);
-    }
-
-    // --- redeem: signature cases (invoked via market prank) ---
-
-    function test_Redeem_ValidSignature() public {
-        MosaicERC721.NFTVoucher memory voucher = VoucherSigner.sign(
-            vm, address(nft), creatorKey, 1, 1 ether, URI, 500, creator
-        );
-        vm.prank(address(market));
-        uint256 id = nft.redeem(buyer, voucher);
-
-        assertEq(nft.ownerOf(id), buyer);
-        assertEq(nft.tokenURI(id), URI);
-        (address r, uint256 a) = nft.royaltyInfo(id, 10_000);
-        assertEq(r, creator);
-        assertEq(a, 500);
-        assertTrue(nft.nonceUsed(creator, 1));
-    }
-
-    function test_Redeem_RevertsTamperedVoucher() public {
-        MosaicERC721.NFTVoucher memory voucher = VoucherSigner.sign(
-            vm, address(nft), creatorKey, 1, 1 ether, URI, 500, creator
-        );
-        // tamper minPrice after signing: signature no longer matches digest
-        voucher.minPrice = 0.001 ether;
-
-        vm.prank(address(market));
-        vm.expectRevert(MosaicERC721.MosaicERC721__InvalidSignature.selector);
-        nft.redeem(buyer, voucher);
-    }
-
-    function test_Redeem_RevertsWrongSigner() public {
-        uint256 attackerKey = 0xBADBADBAD;
-        // attacker signs but claims `creator` as the creator field
-        MosaicERC721.NFTVoucher memory voucher = VoucherSigner.sign(
-            vm, address(nft), attackerKey, 1, 1 ether, URI, 500, creator
-        );
-        vm.prank(address(market));
-        vm.expectRevert(MosaicERC721.MosaicERC721__InvalidSignature.selector);
-        nft.redeem(buyer, voucher);
-    }
-
-    function test_Redeem_RevertsReplayedNonce() public {
-        MosaicERC721.NFTVoucher memory voucher = VoucherSigner.sign(
-            vm, address(nft), creatorKey, 7, 1 ether, URI, 500, creator
-        );
-        vm.prank(address(market));
-        nft.redeem(buyer, voucher);
-
-        // same voucher / nonce again
-        vm.prank(address(market));
-        vm.expectRevert(MosaicERC721.MosaicERC721__NonceAlreadyUsed.selector);
-        nft.redeem(buyer, voucher);
-    }
-
-    function test_Redeem_RevertsRoyaltyTooHigh() public {
-        MosaicERC721.NFTVoucher memory voucher = VoucherSigner.sign(
-            vm, address(nft), creatorKey, 1, 1 ether, URI, 10_001, creator
-        );
-        vm.prank(address(market));
         vm.expectRevert(MosaicERC721.MosaicERC721__RoyaltyTooHigh.selector);
-        nft.redeem(buyer, voucher);
+        nft.createAirdrop(URI, 10_001, 10);
     }
 
-    function test_RecoverVoucherSigner_Matches() public view {
-        MosaicERC721.NFTVoucher memory voucher = VoucherSigner.sign(
-            vm, address(nft), creatorKey, 1, 1 ether, URI, 500, creator
-        );
-        assertEq(nft.recoverVoucherSigner(voucher), creator);
+    function test_CreateAirdrop_StoresCampaign() public {
+        vm.prank(owner);
+        uint256 id = nft.createAirdrop(URI, 500, 10);
+
+        (
+            string memory uri,
+            uint96 royaltyBps,
+            uint64 maxClaims,
+            uint64 claimed,
+            bool active,
+            address campaignCreator
+        ) = nft.airdrops(id);
+        assertEq(uri, URI);
+        assertEq(royaltyBps, 500);
+        assertEq(maxClaims, 10);
+        assertEq(claimed, 0);
+        assertTrue(active);
+        assertEq(campaignCreator, owner);
+    }
+
+    // --- airdrop: claim ---
+
+    function test_ClaimAirdrop_MintsFreeToken() public {
+        vm.prank(owner);
+        uint256 id = nft.createAirdrop(URI, 500, 10);
+
+        vm.prank(buyer);
+        uint256 tokenId = nft.claimAirdrop(id);
+
+        assertEq(nft.ownerOf(tokenId), buyer);
+        assertEq(nft.tokenURI(tokenId), URI);
+        (address r, uint256 a) = nft.royaltyInfo(tokenId, 10_000);
+        assertEq(r, owner, "royalty receiver = campaign creator");
+        assertEq(a, 500);
+        assertTrue(nft.hasClaimed(id, buyer));
+
+        (, , , uint64 claimed, , ) = nft.airdrops(id);
+        assertEq(claimed, 1);
+    }
+
+    function test_ClaimAirdrop_RevertsDoubleClaim() public {
+        vm.prank(owner);
+        uint256 id = nft.createAirdrop(URI, 0, 0);
+
+        vm.prank(buyer);
+        nft.claimAirdrop(id);
+
+        vm.prank(buyer);
+        vm.expectRevert(MosaicERC721.MosaicERC721__AlreadyClaimed.selector);
+        nft.claimAirdrop(id);
+    }
+
+    function test_ClaimAirdrop_RevertsWhenExhausted() public {
+        vm.prank(owner);
+        uint256 id = nft.createAirdrop(URI, 0, 1);
+
+        vm.prank(buyer);
+        nft.claimAirdrop(id);
+
+        vm.prank(bidder1);
+        vm.expectRevert(MosaicERC721.MosaicERC721__AirdropExhausted.selector);
+        nft.claimAirdrop(id);
+    }
+
+    function test_ClaimAirdrop_RevertsWhenNotFound() public {
+        vm.prank(buyer);
+        vm.expectRevert(MosaicERC721.MosaicERC721__AirdropNotFound.selector);
+        nft.claimAirdrop(999);
+    }
+
+    function test_ClaimAirdrop_RevertsWhenInactive() public {
+        vm.prank(owner);
+        uint256 id = nft.createAirdrop(URI, 0, 0);
+        vm.prank(owner);
+        nft.closeAirdrop(id);
+
+        vm.prank(buyer);
+        vm.expectRevert(MosaicERC721.MosaicERC721__AirdropInactive.selector);
+        nft.claimAirdrop(id);
+    }
+
+    function test_ClaimAirdrop_UnlimitedWhenMaxZero() public {
+        vm.prank(owner);
+        uint256 id = nft.createAirdrop(URI, 0, 0);
+
+        vm.prank(buyer);
+        nft.claimAirdrop(id);
+        vm.prank(bidder1);
+        nft.claimAirdrop(id);
+        vm.prank(bidder2);
+        nft.claimAirdrop(id);
+
+        (, , , uint64 claimed, , ) = nft.airdrops(id);
+        assertEq(claimed, 3);
+    }
+
+    // --- airdrop: close access control ---
+
+    function test_CloseAirdrop_OnlyOwner() public {
+        vm.prank(owner);
+        uint256 id = nft.createAirdrop(URI, 0, 0);
+
+        vm.prank(buyer);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, buyer));
+        nft.closeAirdrop(id);
+    }
+
+    function test_CloseAirdrop_RevertsWhenNotFound() public {
+        vm.prank(owner);
+        vm.expectRevert(MosaicERC721.MosaicERC721__AirdropNotFound.selector);
+        nft.closeAirdrop(999);
     }
 }

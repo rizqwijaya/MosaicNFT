@@ -1,18 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "urql";
-import { ACTIVE_LISTINGS, LIVE_AUCTIONS } from "../lib/queries";
+import { ACTIVE_LISTINGS, LIVE_AUCTIONS, ACTIVE_AIRDROPS } from "../lib/queries";
 import { Masonry, EmptyState } from "../components/Masonry";
 import { NftCard } from "../components/NftCard";
 import { CardSkeletonGrid } from "../components/Skeleton";
-import { listVouchers } from "../lib/vouchers";
-import type { GqlListing, GqlAuction, VoucherRecord } from "../lib/types";
+import type { GqlListing, GqlAuction, GqlAirdrop } from "../lib/types";
 
-type Filter = "all" | "fixed" | "auction" | "lazy";
+type Filter = "all" | "fixed" | "auction" | "free";
 type Sort = "newest" | "price-asc" | "price-desc";
 
 const PAGE_SIZE = 12; // max tiles per page (4 columns x 3 rows on xl)
 
-// Unified descriptor so listings, auctions, and vouchers paginate together.
+// Unified descriptor so listings, auctions, and airdrops paginate together.
 interface Item {
   key: string;
   to: string;
@@ -23,7 +22,7 @@ interface Item {
   price?: string | null;
   auctionBid?: string | null;
   auctionEnd?: string | null;
-  lazy?: boolean;
+  free?: boolean;
   fallbackName?: string;
 }
 
@@ -32,7 +31,6 @@ export default function Explore() {
   const [sort, setSort] = useState<Sort>("newest");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [vouchers, setVouchers] = useState<VoucherRecord[]>([]);
 
   const [listingsRes] = useQuery<{ listings: GqlListing[] }>({
     query: ACTIVE_LISTINGS,
@@ -42,21 +40,23 @@ export default function Explore() {
     query: LIVE_AUCTIONS,
     variables: { first: 60, now: String(Math.floor(Date.now() / 1000)) },
   });
+  const [airdropsRes] = useQuery<{ airdrops: GqlAirdrop[] }>({
+    query: ACTIVE_AIRDROPS,
+    variables: { first: 60 },
+  });
 
-  useEffect(() => {
-    listVouchers().then(setVouchers).catch(() => setVouchers([]));
-  }, []);
-
-  const loading = listingsRes.fetching || auctionsRes.fetching;
+  const loading =
+    listingsRes.fetching || auctionsRes.fetching || airdropsRes.fetching;
 
   const showFixed = filter === "all" || filter === "fixed";
   const showAuction = filter === "all" || filter === "auction";
-  const showLazy = filter === "all" || filter === "lazy";
+  const showFree = filter === "all" || filter === "free";
 
   // Build the full, filtered, sorted item list.
   const items = useMemo<Item[]>(() => {
     const listings = listingsRes.data?.listings ?? [];
     const auctions = auctionsRes.data?.auctions ?? [];
+    const airdrops = airdropsRes.data?.airdrops ?? [];
     const all: Item[] = [];
 
     if (showAuction)
@@ -85,18 +85,20 @@ export default function Explore() {
           price: l.price,
         });
       }
-    if (showLazy)
-      for (const v of vouchers) {
+    if (showFree)
+      for (const d of airdrops) {
+        // skip exhausted campaigns (maxClaims > 0 && claimed >= maxClaims)
+        const max = BigInt(d.maxClaims ?? "0");
+        const claimed = BigInt(d.claimed ?? "0");
+        if (max !== 0n && claimed >= max) continue;
         all.push({
-          key: `v-${v.id}`,
-          to: `/lazy/${v.collection}/${v.voucher.nonce}`,
-          tokenURI: v.voucher.uri,
-          name: v.name ?? "",
-          sortPrice: BigInt(v.voucher.minPrice ?? "0"),
-          createdAt: v.createdAt ?? 0,
-          price: v.voucher.minPrice,
-          lazy: true,
-          fallbackName: v.name,
+          key: `d-${d.id}`,
+          to: `/airdrop/${d.id}`,
+          tokenURI: d.uri,
+          name: "",
+          sortPrice: 0n,
+          createdAt: Number(d.createdAt ?? 0),
+          free: true,
         });
       }
 
@@ -112,7 +114,7 @@ export default function Explore() {
     if (sort === "price-desc")
       sorted.sort((a, b) => (b.sortPrice < a.sortPrice ? -1 : b.sortPrice > a.sortPrice ? 1 : 0));
     return sorted;
-  }, [listingsRes.data, auctionsRes.data, vouchers, showFixed, showAuction, showLazy, search, sort]);
+  }, [listingsRes.data, auctionsRes.data, airdropsRes.data, showFixed, showAuction, showFree, search, sort]);
 
   const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -144,14 +146,14 @@ export default function Explore() {
         <div className="relative">
           <span className="inline-flex items-center gap-2 rounded-full glass-soft px-3.5 py-1.5 text-xs font-medium text-stone-300">
             <span className="size-1.5 animate-pulse rounded-full bg-coral-400" />
-            On-chain · gasless lazy minting
+            On-chain · free claimable drops
           </span>
           <h1 className="mt-5 max-w-3xl font-display text-5xl font-bold leading-[1.05] tracking-tight sm:text-7xl">
             <span className="text-gradient">Pieces. Collected. Connected.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base text-stone-400 sm:text-lg">
-            A living mosaic of on-chain art. Explore, collect, and create, with
-            gasless lazy minting included.
+            A living mosaic of on-chain art. Explore, collect, and create — plus
+            free pieces you can claim.
           </p>
         </div>
       </div>
@@ -159,7 +161,7 @@ export default function Explore() {
       {/* Controls */}
       <div className="mb-7 flex flex-wrap items-center gap-3">
         <div className="flex rounded-full glass-soft p-1">
-          {(["all", "fixed", "auction", "lazy"] as Filter[]).map((f) => (
+          {(["all", "fixed", "auction", "free"] as Filter[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -200,7 +202,7 @@ export default function Explore() {
       ) : nothing ? (
         <EmptyState
           title="Nothing here yet"
-          hint="Be the first. Head to Create to mint or lazy-list a piece."
+          hint="Be the first. Head to Create to mint a piece."
         />
       ) : (
         <>
@@ -214,7 +216,7 @@ export default function Explore() {
                 price={it.price}
                 auctionBid={it.auctionBid}
                 auctionEnd={it.auctionEnd}
-                lazy={it.lazy}
+                free={it.free}
                 fallbackName={it.fallbackName}
               />
             ))}

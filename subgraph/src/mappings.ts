@@ -2,12 +2,14 @@ import { BigInt } from "@graphprotocol/graph-ts";
 import {
   Minted,
   Transfer,
+  AirdropCreated,
+  AirdropClaimed,
+  AirdropClosed,
 } from "../generated/MosaicERC721/MosaicERC721";
 import {
   ItemListed,
   ListingCancelled,
   ItemSold,
-  LazyMintSold,
   AuctionCreated,
   BidPlaced,
   AuctionSettled,
@@ -17,6 +19,8 @@ import {
   ProceedsWithdrawn,
 } from "../generated/MosaicMarket/MosaicMarket";
 import {
+  Airdrop,
+  AirdropClaim,
   Auction,
   Bid,
   Listing,
@@ -130,24 +134,55 @@ export function handleItemSold(event: ItemSold): void {
   sale.save();
 }
 
-export function handleLazyMintSold(event: LazyMintSold): void {
-  // Token entity is created/owned via Minted + Transfer (mint-on-buy).
+// ---------------------------------------------------------------
+// MosaicERC721: airdrop campaigns
+// ---------------------------------------------------------------
+
+export function handleAirdropCreated(event: AirdropCreated): void {
+  // event.address is the collection (the ERC721 contract that emitted).
+  let collection = getOrCreateCollection(event.address);
+  let creator = getOrCreateUser(event.params.creator);
+
+  let airdrop = new Airdrop(event.params.airdropId.toString());
+  airdrop.collection = collection.id;
+  airdrop.creator = creator.id;
+  airdrop.uri = event.params.uri;
+  airdrop.royaltyBps = event.params.royaltyBps.toI32();
+  airdrop.maxClaims = event.params.maxClaims;
+  airdrop.claimed = ZERO;
+  airdrop.active = true;
+  airdrop.createdAt = event.block.timestamp;
+  airdrop.save();
+}
+
+export function handleAirdropClaimed(event: AirdropClaimed): void {
+  let airdrop = Airdrop.load(event.params.airdropId.toString());
+  if (airdrop == null) return;
+
+  airdrop.claimed = airdrop.claimed.plus(BigInt.fromI32(1));
+  airdrop.save();
+
+  // Token entity is created/owned via Minted + Transfer (mint-on-claim).
   let token = getOrCreateToken(
-    event.params.collection,
+    event.address,
     event.params.tokenId,
     event.block.timestamp
   );
-  let creator = getOrCreateUser(event.params.creator);
-  let buyer = getOrCreateUser(event.params.buyer);
+  let claimer = getOrCreateUser(event.params.claimer);
 
-  let sale = new Sale(eventId(event));
-  sale.token = token.id;
-  sale.seller = creator.id; // primary sale: creator is the seller
-  sale.buyer = buyer.id;
-  sale.price = event.params.price;
-  sale.kind = "LAZY";
-  sale.timestamp = event.block.timestamp;
-  sale.save();
+  let claim = new AirdropClaim(eventId(event));
+  claim.airdrop = airdrop.id;
+  claim.claimer = claimer.id;
+  claim.token = token.id;
+  claim.timestamp = event.block.timestamp;
+  claim.save();
+}
+
+export function handleAirdropClosed(event: AirdropClosed): void {
+  let airdrop = Airdrop.load(event.params.airdropId.toString());
+  if (airdrop == null) return;
+  airdrop.active = false;
+  airdrop.save();
 }
 
 // ---------------------------------------------------------------

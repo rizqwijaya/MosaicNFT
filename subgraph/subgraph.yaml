@@ -18,6 +18,8 @@ dataSources:
         - Collection
         - Token
         - User
+        - Airdrop
+        - AirdropClaim
       abis:
         - name: MosaicERC721
           file: ./abis/MosaicERC721.json
@@ -26,6 +28,12 @@ dataSources:
           handler: handleMinted
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
+        - event: AirdropCreated(indexed uint256,indexed address,string,uint96,uint64)
+          handler: handleAirdropCreated
+        - event: AirdropClaimed(indexed uint256,indexed address,indexed uint256)
+          handler: handleAirdropClaimed
+        - event: AirdropClosed(indexed uint256)
+          handler: handleAirdropClosed
       file: ./src/mappings.ts
   - kind: ethereum
     name: MosaicMarket
@@ -57,8 +65,6 @@ dataSources:
           handler: handleListingCancelled
         - event: ItemSold(indexed address,indexed uint256,address,indexed address,uint256)
           handler: handleItemSold
-        - event: LazyMintSold(indexed address,indexed uint256,address,indexed address,uint256)
-          handler: handleLazyMintSold
         - event: AuctionCreated(indexed uint256,indexed address,indexed uint256,address,uint256,uint256)
           handler: handleAuctionCreated
         - event: BidPlaced(indexed uint256,indexed address,uint256)

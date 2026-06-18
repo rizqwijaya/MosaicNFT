@@ -2,9 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {BaseTest} from "./Base.t.sol";
-import {MosaicERC721} from "../src/MosaicERC721.sol";
 import {MosaicMarket} from "../src/MosaicMarket.sol";
-import {VoucherSigner} from "./helpers/VoucherSigner.sol";
 
 /// @dev Fuzz tests over the payment split. Core invariant: every wei of the
 ///      sale price is accounted for across royalty + fee + seller (no dust
@@ -51,38 +49,6 @@ contract MarketFuzzTest is BaseTest {
             + market.proceeds(seller);
         assertEq(total, price, "all wei accounted for");
         assertEq(address(market).balance, price, "contract holds exactly price");
-    }
-
-    /// Primary lazy-mint sale: fee + creator == price (no royalty on first sale).
-    function testFuzz_PrimarySplit_Conserves(
-        uint256 minPrice,
-        uint256 pay,
-        uint96 feeBps,
-        uint96 royaltyBps
-    ) public {
-        minPrice = bound(minPrice, 1, 100_000 ether);
-        pay = bound(pay, minPrice, 200_000 ether);
-        feeBps = uint96(bound(feeBps, 0, 10_000));
-        royaltyBps = uint96(bound(royaltyBps, 0, 10_000));
-
-        vm.prank(owner);
-        market.setFeeConfig(feeBps, feeRecipient);
-
-        MosaicERC721.NFTVoucher memory v = VoucherSigner.sign(
-            vm, address(nft), creatorKey, 1, minPrice, URI, royaltyBps, creator
-        );
-
-        vm.deal(buyer, pay);
-        vm.prank(buyer);
-        market.buyLazy{value: pay}(address(nft), v);
-
-        uint256 expectedFee = (pay * feeBps) / 10_000;
-        uint256 expectedCreator = pay - expectedFee;
-
-        assertEq(market.proceeds(feeRecipient), expectedFee, "fee");
-        assertEq(market.proceeds(creator), expectedCreator, "creator");
-        assertEq(expectedFee + expectedCreator, pay, "conserved");
-        assertEq(address(market).balance, pay);
     }
 
     /// Withdraw is exact: caller receives precisely their credited balance.

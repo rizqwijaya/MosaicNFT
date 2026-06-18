@@ -14,10 +14,9 @@ import {MosaicMarket} from "../src/MosaicMarket.sol";
 ///   COLLECTION_NAME   (string,  optional) defaults to "MosaicNFT"
 ///   COLLECTION_SYMBOL (string,  optional) defaults to "MOSAIC"
 ///
-/// Deployment order (matters):
+/// Deployment order:
 ///   1. Deploy MosaicERC721(name, symbol, owner=deployer)
 ///   2. Deploy MosaicMarket(feeBps, feeRecipient, owner=deployer)
-///   3. nft.setMarket(address(market))  <-- authorizes market to call redeem()
 ///
 /// Example:
 ///   forge script script/Deploy.s.sol:Deploy \
@@ -40,9 +39,6 @@ contract Deploy is Script {
         // 2. marketplace
         market = new MosaicMarket(feeBps, feeRecipient, deployer);
 
-        // 3. authorize the market to call redeem() on the collection
-        nft.setMarket(address(market));
-
         vm.stopBroadcast();
 
         console2.log("MosaicERC721 :", address(nft));
@@ -50,6 +46,5 @@ contract Deploy is Script {
         console2.log("owner        :", deployer);
         console2.log("feeRecipient :", feeRecipient);
         console2.log("feeBps       :", feeBps);
-        console2.log("market wired :", nft.market() == address(market));
     }
 }

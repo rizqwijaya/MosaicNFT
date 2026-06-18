@@ -1,22 +1,20 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "urql";
-import { useAccount } from "wagmi";
-import { TOKEN_DETAIL } from "../lib/queries";
+import { useAccount, useReadContract } from "wagmi";
+import { TOKEN_DETAIL, AIRDROP_DETAIL } from "../lib/queries";
 import { useMetadata } from "../hooks/useMetadata";
 import { useMarket } from "../hooks/useMarket";
-import { getVoucher, markRedeemed } from "../lib/vouchers";
-import { ipfsToHttp, fetchMetadata, type TokenMetadata } from "../lib/ipfs";
-import { fmtEth, shortAddr, timeLeft, fmtDate, CURRENCY } from "../lib/format";
+import { useToast } from "../components/Toast";
+import { ipfsToHttp, type TokenMetadata } from "../lib/ipfs";
+import { fmtEth, shortAddr, timeLeft, fmtDate, CURRENCY, humanizeError } from "../lib/format";
+import { MOSAIC_ERC721, erc721Abi } from "../lib/contracts";
 import { Skeleton } from "../components/Skeleton";
-import type { GqlToken, VoucherRecord } from "../lib/types";
+import type { GqlToken, GqlAirdrop } from "../lib/types";
 import { formatEther } from "viem";
 
 export default function ItemDetail() {
   const params = useParams();
-  const isLazy = !!params.nonce;
-  if (isLazy)
-    return <LazyDetail collection={params.collection!} nonce={params.nonce!} />;
   return <OnchainDetail collection={params.collection!} tokenId={params.tokenId!} />;
 }
 
@@ -462,57 +460,71 @@ function PriceTag({ label, wei }: { label: string; wei: string }) {
   );
 }
 
-/* ---------------- lazy voucher ---------------- */
+/* ---------------- free airdrop ---------------- */
 
-function LazyDetail({ collection, nonce }: { collection: string; nonce: string }) {
-  const { address } = useAccount();
-  const [rec, setRec] = useState<VoucherRecord | null>(null);
-  const [meta, setMeta] = useState<TokenMetadata | null>(null);
-  const [loading, setLoading] = useState(true);
+export function AirdropDetail() {
+  const { id } = useParams();
+  const { address, isConnected } = useAccount();
+  const navigate = useNavigate();
+  const toast = useToast();
+
+  const [res] = useQuery<{ airdrop: GqlAirdrop | null }>({
+    query: AIRDROP_DETAIL,
+    variables: { id },
+  });
+  const drop = res.data?.airdrop;
+  const { meta, loading: metaLoading } = useMetadata(drop?.uri);
   const market = useMarket();
 
-  useEffect(() => {
-    let alive = true;
-    getVoucher(collection, nonce).then(async (r) => {
-      if (!alive) return;
-      setRec(r);
-      if (r) setMeta(await fetchMetadata(r.voucher.uri));
-      setLoading(false);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [collection, nonce]);
+  // Has the connected wallet already claimed this campaign?
+  const { data: claimed } = useReadContract({
+    address: MOSAIC_ERC721,
+    abi: erc721Abi,
+    functionName: "hasClaimed",
+    args: [BigInt(id ?? "0"), (address ?? "0x0") as `0x${string}`],
+    query: { enabled: !!address && !!id },
+  });
 
-  if (loading) return <DetailSkeleton />;
-  if (!rec)
+  if (res.fetching) return <DetailSkeleton />;
+  if (!drop)
     return (
       <div className="py-20 text-center text-stone-500">
-        This voucher is no longer available.
+        This airdrop is no longer available.
       </div>
     );
 
-  const isCreator =
-    !!address && rec.voucher.creator.toLowerCase() === address.toLowerCase();
+  const max = BigInt(drop.maxClaims ?? "0");
+  const minted = BigInt(drop.claimed ?? "0");
+  const exhausted = max !== 0n && minted >= max;
+  const alreadyClaimed = !!claimed;
+  const canClaim =
+    isConnected && drop.active && !exhausted && !alreadyClaimed && !market.isPending;
 
-  const handleBuy = async () => {
-    const hash = await market.buyLazy(rec.voucher, BigInt(rec.voucher.minPrice));
-    if (hash) markRedeemed(collection, nonce);
+  const handleClaim = async () => {
+    try {
+      const hash = await market.claimAirdrop(BigInt(drop.id));
+      if (hash) {
+        toast.push("success", "Claimed! Find it in your Profile › Owned.");
+        if (address) navigate(`/u/${address}`);
+      }
+    } catch (err) {
+      toast.push("error", humanizeError(err));
+    }
   };
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-      <MediaPanel meta={meta} loading={false} />
+      <MediaPanel meta={meta} loading={metaLoading} />
       <div>
         <span className="rounded-full bg-coral-500/90 px-2.5 py-1 text-xs font-medium text-white">
-          Lazy mint
+          Free claim
         </span>
         <h1 className="mt-2 font-display text-3xl font-bold">
-          {meta?.name || rec.name || "Untitled"}
+          {meta?.name || "Untitled"}
         </h1>
         <div className="mt-2 text-sm text-stone-500">
-          Creator {shortAddr(rec.voucher.creator)} · Royalty{" "}
-          {(rec.voucher.royaltyBps / 100).toFixed(1)}%
+          Creator {shortAddr(drop.creator.id)} · Royalty{" "}
+          {(drop.royaltyBps / 100).toFixed(1)}%
         </div>
         {meta?.description && (
           <p className="mt-4 text-stone-600 dark:text-stone-300">
@@ -521,22 +533,36 @@ function LazyDetail({ collection, nonce }: { collection: string; nonce: string }
         )}
 
         <div className="card mt-6 p-5">
-          <PriceTag label="Mint price" wei={rec.voucher.minPrice} />
+          <div className="text-xs text-stone-500">Price</div>
+          <div className="font-display text-3xl font-bold text-coral-600 dark:text-coral-400">
+            Free
+          </div>
           <p className="mt-3 text-sm text-stone-500">
-            Nothing is on-chain yet. Buying mints the NFT directly to you
-            (mint-on-buy) and pays the creator.
+            {max === 0n
+              ? `${minted.toString()} claimed so far.`
+              : `${minted.toString()} of ${max.toString()} claimed.`}{" "}
+            Claiming mints the NFT directly to you. You pay only gas.
           </p>
-          {isCreator ? (
+
+          {!isConnected ? (
+            <p className="mt-4 text-sm text-stone-500">
+              Connect your wallet to claim.
+            </p>
+          ) : alreadyClaimed ? (
             <div className="mt-4 text-sm text-stone-500">
-              This is your voucher, waiting for a buyer.
+              You already claimed this drop.
+            </div>
+          ) : exhausted || !drop.active ? (
+            <div className="mt-4 text-sm text-stone-500">
+              This drop is closed.
             </div>
           ) : (
             <button
-              disabled={market.isPending}
-              onClick={handleBuy}
+              disabled={!canClaim}
+              onClick={handleClaim}
               className="btn-primary mt-4 w-full"
             >
-              Mint &amp; buy for {fmtEth(rec.voucher.minPrice)} {CURRENCY}
+              {market.isPending ? "Claiming…" : "Claim free NFT"}
             </button>
           )}
         </div>

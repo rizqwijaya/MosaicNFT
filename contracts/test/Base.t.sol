@@ -14,10 +14,7 @@ abstract contract BaseTest is Test {
     address internal owner = makeAddr("owner");
     address internal feeRecipient = makeAddr("feeRecipient");
 
-    // Creator key/address for EIP-712 voucher signing.
-    uint256 internal creatorKey = 0xC0FFEE;
-    address internal creator;
-
+    address internal creator = makeAddr("creator");
     address internal seller = makeAddr("seller");
     address internal buyer = makeAddr("buyer");
     address internal bidder1 = makeAddr("bidder1");
@@ -26,12 +23,9 @@ abstract contract BaseTest is Test {
     uint96 internal constant FEE_BPS = 250; // 2.5%
 
     function setUp() public virtual {
-        creator = vm.addr(creatorKey);
-
         vm.startPrank(owner);
         nft = new MosaicERC721("MosaicNFT", "MOSAIC", owner);
         market = new MosaicMarket(FEE_BPS, feeRecipient, owner);
-        nft.setMarket(address(market));
         vm.stopPrank();
 
         vm.deal(buyer, 100 ether);

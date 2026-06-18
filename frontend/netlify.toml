@@ -12,16 +12,6 @@
   to = "/.netlify/functions/pin"
   status = 200
 
-[[redirects]]
-  from = "/api/vouchers"
-  to = "/.netlify/functions/vouchers"
-  status = 200
-
-[[redirects]]
-  from = "/api/vouchers/*"
-  to = "/.netlify/functions/vouchers/:splat"
-  status = 200
-
 # SPA fallback: must come last
 [[redirects]]
   from = "/*"

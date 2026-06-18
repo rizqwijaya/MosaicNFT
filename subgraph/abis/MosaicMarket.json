@@ -120,56 +120,6 @@
   },
   {
     "type": "function",
-    "name": "buyLazy",
-    "inputs": [
-      {
-        "name": "collection",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "voucher",
-        "type": "tuple",
-        "internalType": "struct MosaicERC721.NFTVoucher",
-        "components": [
-          {
-            "name": "nonce",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "minPrice",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "uri",
-            "type": "string",
-            "internalType": "string"
-          },
-          {
-            "name": "royaltyBps",
-            "type": "uint96",
-            "internalType": "uint96"
-          },
-          {
-            "name": "creator",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "signature",
-            "type": "bytes",
-            "internalType": "bytes"
-          }
-        ]
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "payable"
-  },
-  {
-    "type": "function",
     "name": "cancelListing",
     "inputs": [
       {
@@ -719,43 +669,6 @@
   },
   {
     "type": "event",
-    "name": "LazyMintSold",
-    "inputs": [
-      {
-        "name": "collection",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "tokenId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "creator",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      },
-      {
-        "name": "buyer",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "price",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
     "name": "ListingCancelled",
     "inputs": [
       {
@@ -931,11 +844,6 @@
   {
     "type": "error",
     "name": "Mosaic__FeeTooHigh",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "Mosaic__InsufficientPayment",
     "inputs": []
   },
   {

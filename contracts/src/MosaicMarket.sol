@@ -7,19 +7,10 @@ import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {MosaicERC721} from "./MosaicERC721.sol";
-
-/// @dev Minimal interface for lazy-mint redemption on a Mosaic collection.
-interface IMosaicCollection {
-    function redeem(address buyer, MosaicERC721.NFTVoucher calldata voucher)
-        external
-        returns (uint256 tokenId);
-}
 
 /// @title MosaicMarket: the MosaicNFT marketplace.
-/// @notice Fixed-price listings, English auctions, offers, and lazy-mint
-///         purchases. Orchestrates all payments, marketplace fees, and
-///         EIP-2981 royalty distribution.
+/// @notice Fixed-price listings, English auctions, and offers. Orchestrates all
+///         payments, marketplace fees, and EIP-2981 royalty distribution.
 /// @dev Follows checks-effects-interactions. All outgoing value uses a
 ///      pull-payment pattern (credited to {proceeds}, withdrawn by the
 ///      recipient). ReentrancyGuard protects every fund/NFT-moving entry point.
@@ -83,13 +74,6 @@ contract MosaicMarket is Ownable, ReentrancyGuard, ERC721Holder {
         address indexed buyer,
         uint256 price
     );
-    event LazyMintSold(
-        address indexed collection,
-        uint256 indexed tokenId,
-        address creator,
-        address indexed buyer,
-        uint256 price
-    );
     event AuctionCreated(
         uint256 indexed auctionId,
         address indexed collection,
@@ -134,7 +118,6 @@ contract MosaicMarket is Ownable, ReentrancyGuard, ERC721Holder {
     error Mosaic__OfferInactive();
     error Mosaic__NotOfferOwner();
     error Mosaic__ZeroOffer();
-    error Mosaic__InsufficientPayment();
     error Mosaic__NothingToWithdraw();
     error Mosaic__TransferFailed();
 
@@ -199,32 +182,6 @@ contract MosaicMarket is Ownable, ReentrancyGuard, ERC721Holder {
         IERC721(collection).safeTransferFrom(listing.seller, msg.sender, tokenId);
 
         emit ItemSold(collection, tokenId, listing.seller, msg.sender, listing.price);
-    }
-
-    // ---------------------------------------------------------------
-    // Lazy mint purchase (primary sale)
-    // ---------------------------------------------------------------
-
-    /// @notice Buy a lazily-listed token: mints on-chain and pays the creator.
-    /// @dev Primary sale: proceeds go to the creator directly (minus fee), and
-    ///      no separate EIP-2981 royalty is applied on this first sale.
-    function buyLazy(address collection, MosaicERC721.NFTVoucher calldata voucher)
-        external
-        payable
-        nonReentrant
-    {
-        if (msg.value < voucher.minPrice) revert Mosaic__InsufficientPayment();
-
-        // interaction (mint): the collection re-verifies the signature & nonce.
-        uint256 tokenId = IMosaicCollection(collection).redeem(msg.sender, voucher);
-
-        // effects: primary sale split: fee + creator proceeds.
-        uint256 fee = (msg.value * marketplaceFeeBps) / BPS_DENOMINATOR;
-        uint256 creatorProceeds = msg.value - fee;
-        if (fee > 0) proceeds[feeRecipient] += fee;
-        proceeds[voucher.creator] += creatorProceeds;
-
-        emit LazyMintSold(collection, tokenId, voucher.creator, msg.sender, msg.value);
     }
 
     // ---------------------------------------------------------------

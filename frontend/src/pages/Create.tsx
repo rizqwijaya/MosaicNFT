@@ -1,34 +1,38 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAccount, useSignTypedData } from "wagmi";
-import { parseEther } from "viem";
+import { useAccount, useReadContract } from "wagmi";
 import { useMarket } from "../hooks/useMarket";
 import { useToast } from "../components/Toast";
 import { pinFile, pinJson } from "../lib/ipfs";
-import { saveVoucher } from "../lib/vouchers";
 import { humanizeError } from "../lib/format";
-import {
-  MOSAIC_ERC721,
-  VOUCHER_DOMAIN,
-  VOUCHER_TYPES,
-} from "../lib/contracts";
+import { MOSAIC_ERC721, erc721Abi } from "../lib/contracts";
 
-type Mode = "mint" | "lazy";
+type Mode = "mint" | "airdrop";
 
 export default function Create() {
   const { address, isConnected } = useAccount();
   const navigate = useNavigate();
   const toast = useToast();
   const market = useMarket();
-  const { signTypedDataAsync } = useSignTypedData();
 
-  const [mode, setMode] = useState<Mode>("lazy");
+  // Only the collection owner may create airdrop campaigns.
+  const { data: ownerAddr } = useReadContract({
+    address: MOSAIC_ERC721,
+    abi: erc721Abi,
+    functionName: "owner",
+  });
+  const isOwner =
+    !!address &&
+    !!ownerAddr &&
+    (ownerAddr as string).toLowerCase() === address.toLowerCase();
+
+  const [mode, setMode] = useState<Mode>("mint");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [royalty, setRoyalty] = useState("5");
-  const [price, setPrice] = useState("0.05");
+  const [maxClaims, setMaxClaims] = useState("100");
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState<string>("");
 
@@ -65,46 +69,21 @@ export default function Create() {
     }
   }
 
-  async function handleLazyList() {
+  async function handleCreateAirdrop() {
     if (!address) return;
     setBusy(true);
     try {
       const uri = await uploadMetadata();
-      const nonce = BigInt(Date.now()); // unique per creator
-      const minPrice = parseEther(price);
-
-      setStep("Sign the voucher in your wallet (no gas)…");
-      const signature = await signTypedDataAsync({
-        domain: VOUCHER_DOMAIN,
-        types: VOUCHER_TYPES,
-        primaryType: "NFTVoucher",
-        message: {
-          nonce,
-          minPrice,
-          uri,
-          royaltyBps: BigInt(royaltyBps),
-          creator: address,
-        },
-      });
-
-      setStep("Saving voucher…");
-      await saveVoucher({
-        id: `${MOSAIC_ERC721.toLowerCase()}-${nonce}`,
-        collection: MOSAIC_ERC721.toLowerCase(),
-        name,
-        image: uri,
-        voucher: {
-          nonce: nonce.toString(),
-          minPrice: minPrice.toString(),
-          uri,
-          royaltyBps,
-          creator: address,
-          signature,
-        },
-      });
-
-      toast.push("success", "Lazy-listed! It's now on Explore, gas-free.");
-      navigate(`/lazy/${MOSAIC_ERC721.toLowerCase()}/${nonce}`);
+      setStep("");
+      const hash = await market.createAirdrop(
+        uri,
+        royaltyBps,
+        Math.max(0, Math.round(Number(maxClaims) || 0))
+      );
+      if (hash) {
+        toast.push("success", "Airdrop live! It's now on Explore › Free.");
+        navigate("/");
+      }
     } catch (err) {
       toast.push("error", humanizeError(err));
     } finally {
@@ -119,25 +98,29 @@ export default function Create() {
     <div className="mx-auto max-w-2xl">
       <h1 className="font-display text-3xl font-bold">Create</h1>
       <p className="mt-2 text-stone-500 dark:text-stone-400">
-        Upload your art, set a royalty, and choose how to sell it.
+        {mode === "airdrop"
+          ? "Publish a free piece anyone can claim (they pay only gas)."
+          : "Upload your art, set a royalty, and mint it to your wallet."}
       </p>
 
-      {/* mode toggle */}
-      <div className="mt-6 grid grid-cols-2 gap-3">
-        <ModeCard
-          active={mode === "lazy"}
-          onClick={() => setMode("lazy")}
-          title="Lazy list"
-          desc="Sign a voucher, no gas. Minted only when someone buys."
-          badge="Recommended"
-        />
-        <ModeCard
-          active={mode === "mint"}
-          onClick={() => setMode("mint")}
-          title="Mint now"
-          desc="Mint on-chain immediately. You pay gas; it lands in your wallet."
-        />
-      </div>
+      {/* mode toggle — airdrop only for the collection owner */}
+      {isOwner && (
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <ModeCard
+            active={mode === "mint"}
+            onClick={() => setMode("mint")}
+            title="Mint"
+            desc="Mint on-chain to your wallet. You pay gas; sell it anytime."
+          />
+          <ModeCard
+            active={mode === "airdrop"}
+            onClick={() => setMode("airdrop")}
+            title="Airdrop"
+            desc="Publish a free piece. Anyone can claim one (they pay gas)."
+            badge="Owner"
+          />
+        </div>
+      )}
 
       <div className="card mt-6 space-y-5 p-6">
         {/* uploader */}
@@ -179,10 +162,17 @@ export default function Create() {
             <label className="mb-1.5 block text-sm font-medium">Royalty %</label>
             <input value={royalty} onChange={(e) => setRoyalty(e.target.value)} className="input" inputMode="decimal" />
           </div>
-          {mode === "lazy" && (
+          {mode === "airdrop" && (
             <div>
-              <label className="mb-1.5 block text-sm font-medium">Price (Sepolia ETH)</label>
-              <input value={price} onChange={(e) => setPrice(e.target.value)} className="input" inputMode="decimal" />
+              <label className="mb-1.5 block text-sm font-medium">
+                Max claims (0 = unlimited)
+              </label>
+              <input
+                value={maxClaims}
+                onChange={(e) => setMaxClaims(e.target.value)}
+                className="input"
+                inputMode="numeric"
+              />
             </div>
           )}
         </div>
@@ -199,14 +189,14 @@ export default function Create() {
         ) : (
           <button
             disabled={!canSubmit}
-            onClick={mode === "mint" ? handleMintNow : handleLazyList}
+            onClick={mode === "airdrop" ? handleCreateAirdrop : handleMintNow}
             className="btn-primary w-full"
           >
             {busy
               ? "Working…"
-              : mode === "mint"
-                ? "Mint now"
-                : "Sign & lazy-list (no gas)"}
+              : mode === "airdrop"
+                ? "Publish airdrop"
+                : "Mint now"}
           </button>
         )}
       </div>

@@ -75,7 +75,7 @@ type Sale @entity(immutable: true) {
   seller: User
   buyer: User!
   price: BigInt!
-  "FIXED | AUCTION | LAZY"
+  "FIXED | AUCTION"
   kind: SaleKind!
   timestamp: BigInt!
 }
@@ -83,7 +83,29 @@ type Sale @entity(immutable: true) {
 enum SaleKind {
   FIXED
   AUCTION
-  LAZY
+}
+
+type Airdrop @entity(immutable: false) {
+  "airdropId."
+  id: ID!
+  collection: Collection!
+  creator: User!
+  uri: String!
+  royaltyBps: Int!
+  maxClaims: BigInt!
+  claimed: BigInt!
+  active: Boolean!
+  createdAt: BigInt!
+  claims: [AirdropClaim!]! @derivedFrom(field: "airdrop")
+}
+
+type AirdropClaim @entity(immutable: true) {
+  "txHash-logIndex."
+  id: ID!
+  airdrop: Airdrop!
+  claimer: User!
+  token: Token!
+  timestamp: BigInt!
 }
 
 type User @entity(immutable: false) {

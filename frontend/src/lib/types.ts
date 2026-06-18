@@ -48,30 +48,22 @@ export interface GqlOffer {
 export interface GqlSale {
   id: string;
   price: string;
-  kind: "FIXED" | "AUCTION" | "LAZY";
+  kind: "FIXED" | "AUCTION";
   timestamp: string;
   seller?: GqlUser | null;
   buyer: GqlUser;
   token?: GqlToken;
 }
 
-// The signed lazy-mint voucher stored off-chain and redeemed on buyLazy.
-export interface Voucher {
-  nonce: string;
-  minPrice: string;
+// A free airdrop campaign (owner-funded, self-claimed).
+export interface GqlAirdrop {
+  id: string;
   uri: string;
   royaltyBps: number;
-  creator: string;
-  signature: string;
-}
-
-// Voucher record as stored/served by the vouchers Netlify function.
-export interface VoucherRecord {
-  id: string; // `${collection}-${nonce}`
-  collection: string;
-  voucher: Voucher;
-  name?: string;
-  image?: string; // ipfs:// for card preview
-  redeemed?: boolean;
-  createdAt: number;
+  maxClaims: string; // BigInt as string; "0" = unlimited
+  claimed: string; // BigInt as string
+  active: boolean;
+  createdAt?: string;
+  creator: GqlUser;
+  collection: GqlCollection;
 }

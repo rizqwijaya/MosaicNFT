@@ -1,28 +1,11 @@
 // Deployed Sepolia addresses (see deployments/sepolia.json).
+// NOTE: redeploy after the lazy->airdrop refactor and update these.
 export const SEPOLIA_CHAIN_ID = 11155111;
 
 export const MOSAIC_ERC721 =
   "0xd073a7563A7fcB3FA1651a5308C05c213430C834" as const;
 export const MOSAIC_MARKET =
   "0x6f4c6951ba5dcF19952f9E7cA2D47eA1c30Ad131" as const;
-
-// EIP-712 domain for NFTVoucher signing (must match the contract).
-export const VOUCHER_DOMAIN = {
-  name: "MosaicNFT",
-  version: "1",
-  chainId: SEPOLIA_CHAIN_ID,
-  verifyingContract: MOSAIC_ERC721,
-} as const;
-
-export const VOUCHER_TYPES = {
-  NFTVoucher: [
-    { name: "nonce", type: "uint256" },
-    { name: "minPrice", type: "uint256" },
-    { name: "uri", type: "string" },
-    { name: "royaltyBps", type: "uint96" },
-    { name: "creator", type: "address" },
-  ],
-} as const;
 
 // --- ABIs (only the entries the frontend uses) ---
 
@@ -74,13 +57,59 @@ export const erc721Abi = [
   },
   {
     type: "function",
-    name: "nonceUsed",
+    name: "owner",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "address" }],
+  },
+  {
+    type: "function",
+    name: "createAirdrop",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "uri", type: "string" },
+      { name: "royaltyBps", type: "uint96" },
+      { name: "maxClaims", type: "uint64" },
+    ],
+    outputs: [{ name: "airdropId", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "claimAirdrop",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "airdropId", type: "uint256" }],
+    outputs: [{ name: "tokenId", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "closeAirdrop",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "airdropId", type: "uint256" }],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "hasClaimed",
     stateMutability: "view",
     inputs: [
-      { name: "creator", type: "address" },
-      { name: "nonce", type: "uint256" },
+      { name: "airdropId", type: "uint256" },
+      { name: "claimer", type: "address" },
     ],
     outputs: [{ name: "", type: "bool" }],
+  },
+  {
+    type: "function",
+    name: "airdrops",
+    stateMutability: "view",
+    inputs: [{ name: "airdropId", type: "uint256" }],
+    outputs: [
+      { name: "uri", type: "string" },
+      { name: "royaltyBps", type: "uint96" },
+      { name: "maxClaims", type: "uint64" },
+      { name: "claimed", type: "uint64" },
+      { name: "active", type: "bool" },
+      { name: "creator", type: "address" },
+    ],
   },
 ] as const;
 
@@ -127,27 +156,6 @@ export const marketAbi = [
     inputs: [
       { name: "collection", type: "address" },
       { name: "tokenId", type: "uint256" },
-    ],
-    outputs: [],
-  },
-  {
-    type: "function",
-    name: "buyLazy",
-    stateMutability: "payable",
-    inputs: [
-      { name: "collection", type: "address" },
-      {
-        name: "voucher",
-        type: "tuple",
-        components: [
-          { name: "nonce", type: "uint256" },
-          { name: "minPrice", type: "uint256" },
-          { name: "uri", type: "string" },
-          { name: "royaltyBps", type: "uint96" },
-          { name: "creator", type: "address" },
-          { name: "signature", type: "bytes" },
-        ],
-      },
     ],
     outputs: [],
   },

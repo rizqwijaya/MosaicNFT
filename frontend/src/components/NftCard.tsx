@@ -11,7 +11,7 @@ interface Props {
   price?: string | null; // fixed listing price (wei)
   auctionBid?: string | null; // current/start bid (wei)
   auctionEnd?: string | null; // endTime sec
-  lazy?: boolean; // lazy-mint voucher card
+  free?: boolean; // free airdrop card
   fallbackName?: string;
 }
 
@@ -41,15 +41,15 @@ export function NftCard({
   price,
   auctionBid,
   auctionEnd,
-  lazy,
+  free,
   fallbackName,
 }: Props) {
   const { meta, loading } = useMetadata(tokenURI);
   const img = meta?.image ? ipfsToHttp(meta.image) : "";
   const name = meta?.name || fallbackName || "Untitled";
 
-  const kind = lazy
-    ? "Mint to buy"
+  const kind = free
+    ? "Free claim"
     : price != null
       ? "Fixed price"
       : auctionBid != null
@@ -89,9 +89,9 @@ export function NftCard({
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
           {/* Badges */}
-          {lazy && (
+          {free && (
             <span className="absolute left-3 top-3 rounded-full border border-white/20 bg-coral-500/85 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-white backdrop-blur">
-              LAZY
+              FREE
             </span>
           )}
           {auctionEnd && (

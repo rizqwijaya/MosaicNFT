@@ -58,12 +58,14 @@ export function humanizeError(err: unknown): string {
   if (lower.includes("auctionended")) return "This auction has already ended.";
   if (lower.includes("auctionnotended"))
     return "The auction hasn't ended yet, can't settle.";
-  if (lower.includes("noncealreadyused"))
-    return "This lazy-mint voucher was already redeemed.";
-  if (lower.includes("invalidsignature"))
-    return "The voucher signature is invalid.";
-  if (lower.includes("insufficientpayment"))
-    return "Payment is below the voucher's minimum price.";
+  if (lower.includes("alreadyclaimed"))
+    return "You already claimed this airdrop.";
+  if (lower.includes("airdropexhausted"))
+    return "This airdrop has been fully claimed.";
+  if (lower.includes("airdropinactive"))
+    return "This airdrop is closed.";
+  if (lower.includes("airdropnotfound"))
+    return "This airdrop no longer exists.";
   if (lower.includes("nothingtowithdraw"))
     return "You have no proceeds to withdraw.";
   if (lower.includes("notapproved"))

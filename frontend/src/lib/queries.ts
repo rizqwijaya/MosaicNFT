@@ -39,6 +39,38 @@ export const LIVE_AUCTIONS = `
   }
 `;
 
+export const ACTIVE_AIRDROPS = `
+  query ActiveAirdrops($first: Int!) {
+    airdrops(where: { active: true }, first: $first, orderBy: createdAt, orderDirection: desc) {
+      id
+      uri
+      royaltyBps
+      maxClaims
+      claimed
+      active
+      createdAt
+      creator { id }
+      collection { id name }
+    }
+  }
+`;
+
+export const AIRDROP_DETAIL = `
+  query AirdropDetail($id: ID!) {
+    airdrop(id: $id) {
+      id
+      uri
+      royaltyBps
+      maxClaims
+      claimed
+      active
+      createdAt
+      creator { id }
+      collection { id name }
+    }
+  }
+`;
+
 export const TOKEN_DETAIL = `
   query TokenDetail($id: ID!) {
     token(id: $id) {
