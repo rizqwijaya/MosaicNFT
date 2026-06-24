@@ -70,15 +70,39 @@ export async function pinJson(metadata: TokenMetadata): Promise<string> {
   return uri;
 }
 
+/** Unsplash photo IDs seeded with truncated slugs — map to working replacements. */
+const UNSPLASH_PATCH: Record<string, string> = {
+  "photo-1499428665502": "photo-1477346611705-65d1883cee1e", // Lumen Glint #36
+  "photo-1469474968028": "photo-1469474968028-56623f02e42e", // Ember Glow #22
+  "photo-1444703686981": "photo-1444703686981-a3abbc4d4fe3", // Stone Wall #13
+};
+
+/** Fix Unsplash URLs whose photo ID was seeded without the full slug. */
+function patchImageUrl(url: string): string {
+  for (const [bad, good] of Object.entries(UNSPLASH_PATCH)) {
+    if (url.includes(bad)) return url.replace(bad, good);
+  }
+  return url;
+}
+
 /** Fetch + parse token metadata JSON from IPFS. */
 export async function fetchMetadata(
   tokenURI: string | null | undefined
 ): Promise<TokenMetadata | null> {
   if (!tokenURI) return null;
   try {
-    const res = await fetch(ipfsToHttp(tokenURI));
-    if (!res.ok) return null;
-    return (await res.json()) as TokenMetadata;
+    let meta: TokenMetadata;
+    if (tokenURI.startsWith("data:application/json;base64,")) {
+      const b64 = tokenURI.slice("data:application/json;base64,".length);
+      const json = atob(b64);
+      meta = JSON.parse(json) as TokenMetadata;
+    } else {
+      const res = await fetch(ipfsToHttp(tokenURI));
+      if (!res.ok) return null;
+      meta = (await res.json()) as TokenMetadata;
+    }
+    if (meta.image) meta.image = patchImageUrl(meta.image);
+    return meta;
   } catch {
     return null;
   }
