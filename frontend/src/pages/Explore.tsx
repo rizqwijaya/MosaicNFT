@@ -94,10 +94,8 @@ export default function Explore() {
 
   const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
-  const pageItems = items.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE
-  );
+  const pageOffset = (safePage - 1) * PAGE_SIZE;
+  const pageItems = items.slice(pageOffset, pageOffset + PAGE_SIZE);
 
   // Reset to page 1 whenever the filtered set changes.
   useEffect(() => {
@@ -186,7 +184,7 @@ export default function Explore() {
             {pageItems.map((it, i) => (
               <NftCard
                 key={it.key}
-                index={i}
+                index={pageOffset + i}
                 to={it.to}
                 tokenURI={it.tokenURI}
                 price={it.price}
