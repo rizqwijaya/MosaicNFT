@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "urql";
 import { useAccount, useReadContract } from "wagmi";
@@ -8,6 +8,7 @@ import { useMarket } from "../hooks/useMarket";
 import { useToast } from "../components/Toast";
 import { ipfsToHttp, type TokenMetadata } from "../lib/ipfs";
 import { fmtEth, shortAddr, timeLeft, fmtDate, CURRENCY, humanizeError } from "../lib/format";
+import { EthIcon } from "../components/EthIcon";
 import { MOSAIC_ERC721, erc721Abi } from "../lib/contracts";
 import { Skeleton } from "../components/Skeleton";
 import type { GqlToken, GqlAirdrop } from "../lib/types";
@@ -67,7 +68,7 @@ function OnchainDetail({
       <div>
         <Link
           to={`/collection/${collection}`}
-          className="text-sm text-coral-600 hover:underline dark:text-coral-400"
+          className="text-sm text-brand-600 hover:underline dark:text-brand-400"
         >
           {t.collection?.name || "MosaicNFT"} →
         </Link>
@@ -139,7 +140,7 @@ function OnchainDetail({
   );
 }
 
-// Same photo pool as NftCard — must stay in sync.
+// Same photo pool as NftCard - must stay in sync.
 const DETAIL_PHOTOS = [
   "photo-1618005182384-a83a8bd57fbe",
   "photo-1558618666-fcd25c85cd64",
@@ -224,10 +225,10 @@ function MediaPanel({
     `?auto=format&fit=crop&w=800&q=80&sat=-100`;
   const src = !imgError && ipfsImg ? ipfsImg : fallback;
 
-  // Force fallback if IPFS image hasn't loaded within 8 seconds
+  // Force fallback if IPFS image hasn't loaded within 20 seconds
   useEffect(() => {
     if (!ipfsImg || imgError) return;
-    timeoutRef.current = setTimeout(() => setImgError(true), 8000);
+    timeoutRef.current = setTimeout(() => setImgError(true), 20000);
     return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, [ipfsImg, imgError]);
 
@@ -471,7 +472,8 @@ function OffersBlock({
                 key={o.id}
                 className="flex items-center justify-between rounded-xl bg-stone-50 px-3 py-2 text-sm dark:bg-stone-800/50"
               >
-                <span className="font-medium text-coral-600 dark:text-coral-400">
+                <span className="inline-flex items-center gap-1 font-medium text-brand-600 dark:text-brand-400">
+                  <EthIcon className="size-3.5" />
                   {fmtEth(o.amount)} {CURRENCY}
                 </span>
                 <span className="text-stone-500">{shortAddr(o.buyer.id)}</span>
@@ -524,7 +526,8 @@ function Activity({
             <span className="text-stone-500">
               {shortAddr(s.seller?.id)} → {shortAddr(s.buyer.id)}
             </span>
-            <span className="font-medium text-coral-600 dark:text-coral-400">
+            <span className="inline-flex items-center gap-1 font-medium text-brand-600 dark:text-brand-400">
+              <EthIcon className="size-3.5" />
               {fmtEth(s.price)} {CURRENCY}
             </span>
             <span className="text-xs text-stone-400">{fmtDate(s.timestamp)}</span>
@@ -539,7 +542,8 @@ function PriceTag({ label, wei }: { label: string; wei: string }) {
   return (
     <div>
       <div className="text-xs text-stone-500">{label}</div>
-      <div className="font-display text-3xl font-bold text-coral-600 dark:text-coral-400">
+      <div className="flex items-center gap-1.5 font-display text-3xl font-bold text-brand-600 dark:text-brand-400">
+        <EthIcon className="size-6" />
         {fmtEth(wei)} <span className="text-base font-medium">{CURRENCY}</span>
       </div>
     </div>
@@ -602,7 +606,7 @@ export function AirdropDetail() {
     <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
       <MediaPanel meta={meta} loading={metaLoading} tokenPath={`/airdrop/${id}`} />
       <div>
-        <span className="rounded-full bg-coral-500/90 px-2.5 py-1 text-xs font-medium text-white">
+        <span className="rounded-full bg-brand-500/90 px-2.5 py-1 text-xs font-medium text-white">
           Free claim
         </span>
         <h1 className="mt-2 font-display text-3xl font-bold">
@@ -620,7 +624,7 @@ export function AirdropDetail() {
 
         <div className="card mt-6 p-5">
           <div className="text-xs text-stone-500">Price</div>
-          <div className="font-display text-3xl font-bold text-coral-600 dark:text-coral-400">
+          <div className="font-display text-3xl font-bold text-brand-600 dark:text-brand-400">
             Free
           </div>
           <p className="mt-3 text-sm text-stone-500">

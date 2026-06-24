@@ -1,20 +1,45 @@
-// IPFS gateway + Pinata pinning client.
+﻿// IPFS gateway + Pinata pinning client.
 
+// Primary gateway (overridable). ipfs.io / dweb.link respond ~10x faster than
+// gateway.pinata.cloud for non-dedicated content.
 const GATEWAY =
-  import.meta.env.VITE_IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs/";
+  import.meta.env.VITE_IPFS_GATEWAY || "https://ipfs.io/ipfs/";
+
+// Fallback gateways tried (in order) if the primary fetch fails or is slow.
+const FALLBACK_GATEWAYS = [
+  "https://ipfs.io/ipfs/",
+  "https://dweb.link/ipfs/",
+  "https://gateway.pinata.cloud/ipfs/",
+];
 
 const PINATA_JWT = import.meta.env.VITE_PINATA_JWT as string | undefined;
 const PIN_FILE_URL = "https://api.pinata.cloud/pinning/pinFileToIPFS";
 const PIN_JSON_URL = "https://api.pinata.cloud/pinning/pinJSONToIPFS";
 
+/** Extract the bare CID/path from an ipfs:// URI or pass through other forms. */
+function ipfsPath(uri: string): string | null {
+  if (uri.startsWith("ipfs://")) return uri.slice("ipfs://".length);
+  if (uri.startsWith("http") || uri.startsWith("/") || uri.startsWith("data:"))
+    return null; // not an ipfs path
+  return uri; // bare CID
+}
+
 /** Resolve an ipfs:// URI (or bare CID) to an HTTP gateway URL. */
 export function ipfsToHttp(uri: string | null | undefined): string {
   if (!uri) return "";
-  if (uri.startsWith("ipfs://")) return GATEWAY + uri.slice("ipfs://".length);
   if (uri.startsWith("http")) return uri;
   // Same-origin path (e.g. dev-served art) or data URI: use verbatim.
   if (uri.startsWith("/") || uri.startsWith("data:")) return uri;
-  return GATEWAY + uri;
+  const path = ipfsPath(uri);
+  return path != null ? GATEWAY + path : uri;
+}
+
+/** All candidate gateway URLs for an ipfs URI, primary first. */
+function gatewayUrls(uri: string): string[] {
+  const path = ipfsPath(uri);
+  if (path == null) return [uri]; // http/data/path: single candidate
+  const gws = [GATEWAY, ...FALLBACK_GATEWAYS.filter((g) => g !== GATEWAY)];
+  return gws.map((g) => g + path);
 }
 
 export interface TokenMetadata {
@@ -23,7 +48,7 @@ export interface TokenMetadata {
   image: string; // ipfs:// uri
 }
 
-/** Pin a file — direct to Pinata if VITE_PINATA_JWT set, else via proxy. */
+/** Pin a file - direct to Pinata if VITE_PINATA_JWT set, else via proxy. */
 export async function pinFile(file: File): Promise<string> {
   if (PINATA_JWT) {
     const form = new FormData();
@@ -45,7 +70,7 @@ export async function pinFile(file: File): Promise<string> {
   return uri;
 }
 
-/** Pin metadata JSON — direct to Pinata if VITE_PINATA_JWT set, else via proxy. */
+/** Pin metadata JSON - direct to Pinata if VITE_PINATA_JWT set, else via proxy. */
 export async function pinJson(metadata: TokenMetadata): Promise<string> {
   if (PINATA_JWT) {
     const res = await fetch(PIN_JSON_URL, {
@@ -70,7 +95,7 @@ export async function pinJson(metadata: TokenMetadata): Promise<string> {
   return uri;
 }
 
-/** Unsplash photo IDs seeded with truncated slugs — map to working replacements. */
+/** Unsplash photo IDs seeded with truncated slugs - map to working replacements. */
 const UNSPLASH_PATCH: Record<string, string> = {
   "photo-1517999144091": "photo-1618005182384-a83a8bd57fbe",
   "photo-1536566482680": "photo-1558618666-fcd25c85cd64",
@@ -118,6 +143,26 @@ function patchImageUrl(url: string): string {
   return url;
 }
 
+/** Fetch JSON from the first gateway that responds, with a per-gateway timeout. */
+async function fetchJsonMultiGateway(
+  uri: string,
+  perGatewayMs = 8000
+): Promise<unknown | null> {
+  for (const url of gatewayUrls(uri)) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), perGatewayMs);
+    try {
+      const res = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (res.ok) return await res.json();
+    } catch {
+      clearTimeout(timer);
+      // try next gateway
+    }
+  }
+  return null;
+}
+
 /** Fetch + parse token metadata JSON from IPFS. */
 export async function fetchMetadata(
   tokenURI: string | null | undefined
@@ -130,9 +175,9 @@ export async function fetchMetadata(
       const json = atob(b64);
       meta = JSON.parse(json) as TokenMetadata;
     } else {
-      const res = await fetch(ipfsToHttp(tokenURI));
-      if (!res.ok) return null;
-      meta = (await res.json()) as TokenMetadata;
+      const json = await fetchJsonMultiGateway(tokenURI);
+      if (json == null) return null;
+      meta = json as TokenMetadata;
     }
     if (meta.image) meta.image = patchImageUrl(meta.image);
     return meta;

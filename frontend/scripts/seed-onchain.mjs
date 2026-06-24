@@ -1,7 +1,7 @@
-// One-off seed: mint + fixed-price list 36 monochrome NFTs on-chain (Sepolia).
+﻿// One-off seed: mint + fixed-price list 36 monochrome NFTs on-chain (Sepolia).
 //
 // Metadata is embedded as a `data:application/json;base64,...` token URI (image
-// = Unsplash monochrome via &sat=-100), so NO IPFS/Pinata is needed — the same
+// = Unsplash monochrome via &sat=-100), so NO IPFS/Pinata is needed - the same
 // trick the old demo seed used. Run from the `frontend` dir:
 //
 //   node scripts/seed-onchain.mjs

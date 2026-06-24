@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "urql";
@@ -10,6 +10,7 @@ import { CardSkeletonGrid } from "../components/Skeleton";
 import { useMarket } from "../hooks/useMarket";
 import { MOSAIC_MARKET, marketAbi } from "../lib/contracts";
 import { fmtEth, shortAddr, fmtDate, CURRENCY } from "../lib/format";
+import { EthIcon } from "../components/EthIcon";
 import type { GqlToken, GqlSale } from "../lib/types";
 
 type Tab = "owned" | "created" | "activity";
@@ -38,7 +39,7 @@ function ConnectPrompt() {
         <h1 className="font-display text-3xl font-bold">Your collection</h1>
       </div>
       <div className="card flex flex-col items-center gap-5 px-6 py-16 text-center">
-        <span className="grid size-14 place-items-center rounded-2xl bg-coral-500/10 text-coral-400">
+        <span className="grid size-14 place-items-center rounded-2xl bg-brand-500/10 text-brand-400">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="2" y="5" width="20" height="14" rx="2" />
             <path d="M16 12h.01M2 10h20" />
@@ -143,7 +144,8 @@ function ProfileView({ routeAddr, connected, navigate }: ProfileViewProps) {
         <div className="card flex items-center gap-4 px-5 py-3">
           <div>
             <div className="text-xs text-stone-500">Withdrawable</div>
-            <div className="font-display text-xl font-bold text-coral-600 dark:text-coral-400">
+            <div className="flex items-center gap-1.5 font-display text-xl font-bold text-brand-600 dark:text-brand-400">
+              <EthIcon className="size-4" />
               {fmtEth(proceedsWei)} {CURRENCY}
             </div>
           </div>
@@ -161,12 +163,12 @@ function ProfileView({ routeAddr, connected, navigate }: ProfileViewProps) {
 
       {/* Different-account notice: the connected wallet is not the profile shown. */}
       {connected && !isSelf && (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-coral-500/30 bg-coral-500/10 px-5 py-3.5 text-sm">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-500/30 bg-brand-500/10 px-5 py-3.5 text-sm">
           <div className="text-stone-200">
             You are viewing{" "}
             <span className="font-medium">{shortAddr(id)}</span>. Your connected
             wallet is{" "}
-            <span className="font-medium text-coral-300">
+            <span className="font-medium text-brand-300">
               {shortAddr(connected)}
             </span>
             . NFTs you bought live on the wallet you paid with.
@@ -185,7 +187,7 @@ function ProfileView({ routeAddr, connected, navigate }: ProfileViewProps) {
             onClick={() => setTab(t)}
             className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-medium capitalize transition ${
               tab === t
-                ? "border-coral-500 text-coral-600 dark:text-coral-400"
+                ? "border-brand-500 text-brand-600 dark:text-brand-400"
                 : "border-transparent text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
             }`}
           >
@@ -218,7 +220,8 @@ function ProfileView({ routeAddr, connected, navigate }: ProfileViewProps) {
                 <span className="text-stone-500">
                   {shortAddr(s.seller?.id)} → {shortAddr(s.buyer.id)}
                 </span>
-                <span className="font-medium text-coral-600 dark:text-coral-400">
+                <span className="inline-flex items-center gap-1 font-medium text-brand-600 dark:text-brand-400">
+                  <EthIcon className="size-3.5" />
                   {fmtEth(s.price)} {CURRENCY}
                 </span>
                 <span className="text-xs text-stone-400">{fmtDate(s.timestamp)}</span>

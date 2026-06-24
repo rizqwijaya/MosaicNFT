@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useMetadata } from "../hooks/useMetadata";
 import { ipfsToHttp } from "../lib/ipfs";
 import { fmtEth, timeLeft, CURRENCY } from "../lib/format";
+import { EthIcon } from "./EthIcon";
 
 interface Props {
   to: string;
@@ -20,7 +21,7 @@ interface Props {
 // Weighted toward portrait/square; the occasional tall/wide adds rhythm.
 const ASPECTS = ["1 / 1", "4 / 5", "3 / 4", "4 / 5", "1 / 1", "3 / 4", "5 / 4", "2 / 3", "1 / 1", "4 / 3"];
 
-// 60 unique Unsplash photo IDs — abstract, texture, macro, landscape. No humans.
+// 60 unique Unsplash photo IDs - abstract, texture, macro, landscape. No humans.
 const FALLBACK_PHOTOS = [
   "photo-1618005182384-a83a8bd57fbe",
   "photo-1558618666-fcd25c85cd64",
@@ -84,7 +85,7 @@ const FALLBACK_PHOTOS = [
   "photo-1387037934861-c8f2c8d5e4d1",
 ];
 
-/** Aspect ratio by card index — varied mosaic heights. */
+/** Aspect ratio by card index - varied mosaic heights. */
 function aspectFor(index: number): string {
   return ASPECTS[index % ASPECTS.length];
 }
@@ -99,7 +100,7 @@ function hashStr(s: string): number {
   return h >>> 0;
 }
 
-/** Unsplash fallback — uses tokenId extracted from path for unique, stable assignment. */
+/** Unsplash fallback - uses tokenId extracted from path for unique, stable assignment. */
 function fallbackImg(to: string): string {
   // Extract numeric tokenId from "/item/{collection}/{tokenId}" or "/airdrop/{id}"
   const parts = to.split("/");
@@ -173,7 +174,7 @@ export function NftCard({
 
           {/* Badges */}
           {free && (
-            <span className="absolute left-3 top-3 rounded-full border border-white/20 bg-coral-500/85 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-white backdrop-blur">
+            <span className="absolute left-3 top-3 rounded-full border border-white/20 bg-brand-500/85 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-white backdrop-blur">
               FREE
             </span>
           )}
@@ -197,7 +198,8 @@ export function NftCard({
               <div className="text-[10px] uppercase tracking-wider text-stone-500">
                 {CURRENCY}
               </div>
-              <div className="font-display text-base font-bold text-coral-400">
+              <div className="flex items-center justify-end gap-1 font-display text-base font-bold text-brand-400">
+                <EthIcon className="size-3.5" />
                 {fmtEth(amount)}
               </div>
             </div>

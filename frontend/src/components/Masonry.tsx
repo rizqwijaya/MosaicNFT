@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 
 /** CSS-columns masonry: varied tile heights assemble into a cohesive wall. */
 export function Masonry({ children }: { children: ReactNode }) {
@@ -18,7 +18,7 @@ export function EmptyState({
 }) {
   return (
     <div className="glass flex flex-col items-center justify-center py-24 text-center">
-      <div className="mb-4 grid size-16 place-items-center rounded-2xl glass-soft text-3xl text-coral-400">
+      <div className="mb-4 grid size-16 place-items-center rounded-2xl glass-soft text-3xl text-brand-400">
         ⬡
       </div>
       <div className="font-display text-xl font-semibold text-stone-100">

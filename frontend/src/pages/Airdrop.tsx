@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery } from "urql";
 import { useAccount, useReadContract } from "wagmi";
 import { ACTIVE_AIRDROPS } from "../lib/queries";
@@ -215,8 +215,8 @@ function CreateAirdropForm({ onCreated }: { onCreated: () => void }) {
       </div>
 
       {step && (
-        <div className="flex items-center gap-2 rounded-xl bg-coral-50 px-3 py-2.5 text-sm text-coral-700 dark:bg-coral-900/20 dark:text-coral-300">
-          <span className="size-2 animate-ping rounded-full bg-coral-500" />
+        <div className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2.5 text-sm text-brand-700 dark:bg-brand-900/20 dark:text-brand-300">
+          <span className="size-2 animate-ping rounded-full bg-brand-500" />
           {step}
         </div>
       )}

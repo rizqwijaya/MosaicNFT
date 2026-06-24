@@ -1,4 +1,4 @@
-import {
+﻿import {
   createContext,
   useCallback,
   useContext,
@@ -72,9 +72,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 function ToastCard({ toast, onClose }: { toast: Toast; onClose: () => void }) {
   const icon =
     toast.kind === "pending" ? (
-      <span className="size-2.5 animate-ping rounded-full bg-coral-500" />
+      <span className="size-2.5 animate-ping rounded-full bg-brand-500" />
     ) : toast.kind === "success" ? (
-      <span className="text-coral-500">✓</span>
+      <span className="text-brand-500">✓</span>
     ) : (
       <span className="text-red-500">✕</span>
     );
