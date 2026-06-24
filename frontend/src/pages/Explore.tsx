@@ -120,14 +120,14 @@ export default function Explore() {
         <div className="relative">
           <span className="inline-flex items-center gap-2 rounded-full glass-soft px-3.5 py-1.5 text-xs font-medium text-stone-300">
             <span className="size-1.5 animate-pulse rounded-full bg-coral-400" />
-            On-chain marketplace · free drops in Airdrop
+            On-chain marketplace · collect &amp; create
           </span>
           <h1 className="mt-5 max-w-3xl font-display text-5xl font-bold leading-[1.05] tracking-tight sm:text-7xl">
             <span className="text-gradient">Pieces. Collected. Connected.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base text-stone-400 sm:text-lg">
-            A living mosaic of on-chain art. Explore, collect, and create. Grab
-            free pieces from the Airdrop page.
+            A living mosaic of on-chain art. Explore, collect, and create your
+            own pieces.
           </p>
         </div>
       </div>
