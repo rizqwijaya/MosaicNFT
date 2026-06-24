@@ -126,10 +126,10 @@ export function NftCard({
   const ipfsImg = meta?.image ? ipfsToHttp(meta.image) : "";
   const img = (!imgError && ipfsImg) ? ipfsImg : fallbackImg(to);
 
-  // Force fallback if IPFS image hasn't loaded within 8 seconds
+  // Force fallback if IPFS image hasn't loaded within 20 seconds
   useEffect(() => {
     if (!ipfsImg || imgError) return;
-    timeoutRef.current = setTimeout(() => setImgError(true), 8000);
+    timeoutRef.current = setTimeout(() => setImgError(true), 20000);
     return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, [ipfsImg, imgError]);
   const name = meta?.name || fallbackName || "Untitled";
