@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "urql";
 import { useAccount, useReadContract } from "wagmi";
 import { USER_PROFILE } from "../lib/queries";
@@ -17,7 +18,55 @@ export default function Profile() {
   const { address: routeAddr } = useParams();
   const { address: connected } = useAccount();
   const navigate = useNavigate();
-  const id = (routeAddr ?? "").toLowerCase();
+
+  // The /profile route has no address param: it's the connected wallet's own
+  // profile. Redirect to its canonical /u/{address} URL, or prompt to connect.
+  if (!routeAddr) {
+    if (connected) return <Navigate to={`/u/${connected}`} replace />;
+    return <ConnectPrompt />;
+  }
+
+  return <ProfileView routeAddr={routeAddr} connected={connected} navigate={navigate} />;
+}
+
+/** Shown on /profile when no wallet is connected. */
+function ConnectPrompt() {
+  return (
+    <div>
+      <div className="mb-6">
+        <div className="text-sm text-stone-500">Profile</div>
+        <h1 className="font-display text-3xl font-bold">Your collection</h1>
+      </div>
+      <div className="card flex flex-col items-center gap-5 px-6 py-16 text-center">
+        <span className="grid size-14 place-items-center rounded-2xl bg-coral-500/10 text-coral-400">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <path d="M16 12h.01M2 10h20" />
+          </svg>
+        </span>
+        <div>
+          <div className="font-display text-lg font-semibold text-stone-100">
+            Connect your wallet
+          </div>
+          <p className="mt-1 max-w-sm text-sm text-stone-400">
+            Connect a wallet to view the pieces you own, the ones you created,
+            and your activity.
+          </p>
+        </div>
+        <ConnectButton chainStatus="icon" accountStatus="address" showBalance={false} />
+      </div>
+    </div>
+  );
+}
+
+interface ProfileViewProps {
+  routeAddr: string;
+  connected?: `0x${string}`;
+  navigate: ReturnType<typeof useNavigate>;
+}
+
+function ProfileView({ routeAddr, connected, navigate }: ProfileViewProps) {
+  const id = routeAddr.toLowerCase();
   const isSelf = !!connected && connected.toLowerCase() === id;
 
   // When the active MetaMask account changes, follow it: snap the Profile route

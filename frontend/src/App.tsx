@@ -17,6 +17,7 @@ export default function App() {
         <Route path="/airdrop/:id" element={<AirdropDetail />} />
         <Route path="/create" element={<Create />} />
         <Route path="/collection/:address" element={<Collection />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/u/:address" element={<Profile />} />
       </Route>
     </Routes>

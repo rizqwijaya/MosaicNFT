@@ -1,6 +1,5 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useAccount } from "wagmi";
+import { Link, NavLink, Outlet } from "react-router-dom";
 
 function navClass({ isActive }: { isActive: boolean }) {
   return `text-sm font-medium transition hover:text-white ${
@@ -60,9 +59,6 @@ function AuroraField() {
 }
 
 export function Layout() {
-  const { address } = useAccount();
-  const navigate = useNavigate();
-
   return (
     <div className="relative flex min-h-screen flex-col">
       <AuroraField />
@@ -88,11 +84,9 @@ export function Layout() {
               <NavLink to="/create" className={navClass}>
                 Create
               </NavLink>
-              {address && (
-                <NavLink to={`/u/${address}`} className={navClass}>
-                  Profile
-                </NavLink>
-              )}
+              <NavLink to="/profile" className={navClass}>
+                Profile
+              </NavLink>
             </nav>
           </div>
           <div className="flex items-center gap-2.5">
@@ -116,14 +110,9 @@ export function Layout() {
           <NavLink to="/create" className={navClass}>
             Create
           </NavLink>
-          {address && (
-            <button
-              onClick={() => navigate(`/u/${address}`)}
-              className={navClass({ isActive: false })}
-            >
-              Profile
-            </button>
-          )}
+          <NavLink to="/profile" className={navClass}>
+            Profile
+          </NavLink>
         </nav>
       </header>
 
