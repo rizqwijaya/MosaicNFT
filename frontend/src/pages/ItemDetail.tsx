@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "urql";
 import { useAccount, useReadContract } from "wagmi";
@@ -177,16 +177,30 @@ const DETAIL_PHOTOS = [
   "photo-1444464666168-49d633b86797",
   "photo-1473773508845-188df298d2d1",
   "photo-1477346611705-65d1883cee1e",
+  "photo-1546587348-d12660c1961b",
+  "photo-1520116468816-95b69f847357",
+  "photo-1484417894907-623942c8ee29",
+  "photo-1446776811953-b23d57bd21aa",
+  "photo-1419242902214-272b3f66ee7a",
+  "photo-1462275646964-a0e3386b89fa",
+  "photo-1444927182256-02671dd1bc0b",
+  "photo-1419833173245-f59e1b93f9ee",
+  "photo-1430026996702-608b84ce9281",
+  "photo-1426604966848-d7adac402bff",
+  "photo-1423345170965-39c584bf45cb",
+  "photo-1421789665209-c9b2a435e3dc",
+  "photo-1418983948791-3d3ca56f9a75",
+  "photo-1414609245224-aea482020e07",
+  "photo-1412012253572-ce6b3ca7a7b4",
+  "photo-1404308894937-0fb55b699c5c",
+  "photo-1403241076743-76f2b840ddba",
+  "photo-1401838401769-c72f5c68fffa",
+  "photo-1397940007271-e9a5f5b6aab3",
+  "photo-1394426847459-6d58c78e5b49",
+  "photo-1392433702200-7ebb3a38d4f1",
+  "photo-1389307014012-5f6be3bcfad4",
+  "photo-1387037934861-c8f2c8d5e4d1",
 ];
-
-function hashStr(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
 
 function MediaPanel({
   meta,
@@ -198,11 +212,24 @@ function MediaPanel({
   tokenPath: string;
 }) {
   const [imgError, setImgError] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ipfsImg = meta?.image ? ipfsToHttp(meta.image) : "";
+  // Use tokenId number from path for same stable assignment as NftCard
+  const parts = tokenPath.split("/");
+  const lastPart = parts[parts.length - 1];
+  const tokenNum = parseInt(lastPart, 10);
+  const idx = isNaN(tokenNum) ? tokenPath.length : tokenNum;
   const fallback =
-    `https://images.unsplash.com/${DETAIL_PHOTOS[hashStr(tokenPath) % DETAIL_PHOTOS.length]}` +
+    `https://images.unsplash.com/${DETAIL_PHOTOS[idx % DETAIL_PHOTOS.length]}` +
     `?auto=format&fit=crop&w=800&q=80&sat=-100`;
   const src = !imgError && ipfsImg ? ipfsImg : fallback;
+
+  // Force fallback if IPFS image hasn't loaded within 8 seconds
+  useEffect(() => {
+    if (!ipfsImg || imgError) return;
+    timeoutRef.current = setTimeout(() => setImgError(true), 8000);
+    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
+  }, [ipfsImg, imgError]);
 
   return (
     <div className="card sticky top-24 self-start">
