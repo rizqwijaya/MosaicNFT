@@ -7,6 +7,50 @@ function navClass({ isActive }: { isActive: boolean }) {
   }`;
 }
 
+/**
+ * Wallet button styled to match the app's own buttons (.btn-primary / .btn-ghost)
+ * so it sits flush with "Create" instead of RainbowKit's taller default chrome.
+ */
+function WalletButton() {
+  return (
+    <ConnectButton.Custom>
+      {({ account, chain, openAccountModal, openChainModal, openConnectModal, mounted }) => {
+        const ready = mounted;
+        const connected = ready && account && chain;
+        return (
+          <div
+            {...(!ready && {
+              "aria-hidden": true,
+              style: { opacity: 0, pointerEvents: "none", userSelect: "none" },
+            })}
+          >
+            {!connected ? (
+              <button onClick={openConnectModal} className="btn-primary">
+                Connect Wallet
+              </button>
+            ) : chain.unsupported ? (
+              <button onClick={openChainModal} className="btn-primary">
+                Wrong network
+              </button>
+            ) : (
+              <button onClick={openAccountModal} className="btn-ghost">
+                {chain.hasIcon && chain.iconUrl && (
+                  <img
+                    src={chain.iconUrl}
+                    alt={chain.name ?? "Chain"}
+                    className="size-4 rounded-full"
+                  />
+                )}
+                {account.displayName}
+              </button>
+            )}
+          </div>
+        );
+      }}
+    </ConnectButton.Custom>
+  );
+}
+
 /** Animated aurora gradient field that sits behind the whole app. */
 function AuroraField() {
   return (
@@ -93,11 +137,7 @@ export function Layout() {
             <Link to="/create" className="btn-primary hidden sm:inline-flex">
               Create
             </Link>
-            <ConnectButton
-              chainStatus="icon"
-              accountStatus="address"
-              showBalance={false}
-            />
+            <WalletButton />
           </div>
         </div>
         <nav className="mx-auto mt-2 flex max-w-7xl items-center gap-6 rounded-full glass-soft px-5 py-2 md:hidden">
