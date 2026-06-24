@@ -62,7 +62,7 @@ function OnchainDetail({
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-      <MediaPanel meta={meta} loading={metaLoading} />
+      <MediaPanel meta={meta} loading={metaLoading} tokenPath={`/item/${collection}/${tokenId}`} />
 
       <div>
         <Link
@@ -139,23 +139,82 @@ function OnchainDetail({
   );
 }
 
+// Same photo pool as NftCard — must stay in sync.
+const DETAIL_PHOTOS = [
+  "photo-1618005182384-a83a8bd57fbe",
+  "photo-1558618666-fcd25c85cd64",
+  "photo-1604871000636-074fa5117945",
+  "photo-1617791160536-598cf32026fb",
+  "photo-1541701494587-cb58502866ab",
+  "photo-1618172193763-c511deb635ca",
+  "photo-1620641788421-7a1c342ea42e",
+  "photo-1559827260-dc66d52bef19",
+  "photo-1567359781514-3b964e2b04d6",
+  "photo-1553356084-58ef4a67b2a7",
+  "photo-1614850523459-c2f4c699c52e",
+  "photo-1635070041078-e363dbe005cb",
+  "photo-1580927752452-89d86da3fa0a",
+  "photo-1534796636912-3b952d172bf7",
+  "photo-1533134486753-c833f0ed4866",
+  "photo-1547036967-23d11aacaee0",
+  "photo-1518640467707-6811f4a6ab73",
+  "photo-1507525428034-b723cf961d3e",
+  "photo-1519681393784-d120267933ba",
+  "photo-1464822759023-fed622ff2c3b",
+  "photo-1506905925346-21bda4d32df4",
+  "photo-1469474968028-56623f02e42e",
+  "photo-1447752875215-b2761acf3dfd",
+  "photo-1475924156734-496f6cac6ec1",
+  "photo-1433086966358-54859d0ed716",
+  "photo-1465146344425-f00d5f5c8f07",
+  "photo-1418065460487-3e41a6c84dc5",
+  "photo-1502082553048-f009c37129b9",
+  "photo-1490730141103-6cac27aaab94",
+  "photo-1504701954957-2010ec3bcec1",
+  "photo-1511300636408-a63a89df3482",
+  "photo-1500534314209-a25ddb2bd429",
+  "photo-1470071459604-3b5ec3a7fe05",
+  "photo-1444464666168-49d633b86797",
+  "photo-1473773508845-188df298d2d1",
+  "photo-1477346611705-65d1883cee1e",
+];
+
+function hashStr(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
 function MediaPanel({
   meta,
   loading,
+  tokenPath,
 }: {
   meta: TokenMetadata | null;
   loading: boolean;
+  tokenPath: string;
 }) {
+  const [imgError, setImgError] = useState(false);
+  const ipfsImg = meta?.image ? ipfsToHttp(meta.image) : "";
+  const fallback =
+    `https://images.unsplash.com/${DETAIL_PHOTOS[hashStr(tokenPath) % DETAIL_PHOTOS.length]}` +
+    `?auto=format&fit=crop&w=800&q=80&sat=-100`;
+  const src = !imgError && ipfsImg ? ipfsImg : fallback;
+
   return (
     <div className="card sticky top-24 self-start">
       {loading ? (
         <Skeleton className="aspect-square w-full" />
-      ) : meta?.image ? (
-        <img src={ipfsToHttp(meta.image)} alt={meta.name} className="w-full object-cover" />
       ) : (
-        <div className="flex aspect-square items-center justify-center text-5xl text-stone-300">
-          ⬡
-        </div>
+        <img
+          src={src}
+          alt={meta?.name ?? "NFT"}
+          className="w-full object-cover"
+          onError={() => setImgError(true)}
+        />
       )}
     </div>
   );
@@ -514,7 +573,7 @@ export function AirdropDetail() {
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-      <MediaPanel meta={meta} loading={metaLoading} />
+      <MediaPanel meta={meta} loading={metaLoading} tokenPath={`/airdrop/${id}`} />
       <div>
         <span className="rounded-full bg-coral-500/90 px-2.5 py-1 text-xs font-medium text-white">
           Free claim

@@ -65,9 +65,19 @@ function aspectFor(index: number): string {
   return ASPECTS[index % ASPECTS.length];
 }
 
-/** Unsplash fallback — abstract/texture/landscape, no humans, unique per slot. */
-function fallbackImg(index: number): string {
-  const id = FALLBACK_PHOTOS[index % FALLBACK_PHOTOS.length];
+/** Stable hash of a string → non-negative int. */
+function hashStr(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/** Unsplash fallback keyed by token path — same image in grid and detail view. */
+function fallbackImg(to: string): string {
+  const id = FALLBACK_PHOTOS[hashStr(to) % FALLBACK_PHOTOS.length];
   return `https://images.unsplash.com/${id}?auto=format&fit=crop&w=600&q=80&sat=-100`;
 }
 
@@ -84,7 +94,7 @@ export function NftCard({
   const { meta, loading } = useMetadata(tokenURI);
   const [imgError, setImgError] = useState(false);
   const ipfsImg = meta?.image ? ipfsToHttp(meta.image) : "";
-  const img = (!imgError && ipfsImg) ? ipfsImg : fallbackImg(index);
+  const img = (!imgError && ipfsImg) ? ipfsImg : fallbackImg(to);
   const name = meta?.name || fallbackName || "Untitled";
 
   const kind = free
