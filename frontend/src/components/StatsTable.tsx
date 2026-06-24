@@ -2,6 +2,7 @@
 import { useMetadata } from "../hooks/useMetadata";
 import { ipfsToHttp } from "../lib/ipfs";
 import { fmtEth, shortAddr, timeLeft, CURRENCY } from "../lib/format";
+import { fallbackImg } from "../lib/fallbackImg";
 import { EthIcon } from "./EthIcon";
 
 export interface TableRow {
@@ -90,11 +91,21 @@ function SortableTh({
 
 function useRowMeta(row: TableRow) {
   const { meta } = useMetadata(row.tokenURI);
-  const img = meta?.image ? ipfsToHttp(meta.image) : "";
+  const ipfsImg = meta?.image ? ipfsToHttp(meta.image) : "";
+  const img = ipfsImg || fallbackImg(row.to, 100);
   const name = meta?.name || row.name || "Untitled";
   const amount = row.price ?? row.auctionBid;
   const isAuction = row.price == null && row.auctionBid != null;
   return { img, name, amount, isAuction };
+}
+
+/** onError handler: swap a broken thumbnail to the deterministic fallback. */
+function onImgError(to: string) {
+  return (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const el = e.currentTarget;
+    const fb = fallbackImg(to, 100);
+    if (el.src !== fb) el.src = fb;
+  };
 }
 
 function TableRowView({ row, index }: { row: TableRow; index: number }) {
@@ -106,11 +117,13 @@ function TableRowView({ row, index }: { row: TableRow; index: number }) {
       <td className="px-5 py-3">
         <Link to={row.to} className="flex items-center gap-3">
           <div className="size-11 shrink-0 overflow-hidden rounded-lg bg-panel-2">
-            {img ? (
-              <img src={img} alt={name} loading="lazy" className="size-full object-cover" />
-            ) : (
-              <div className="skeleton size-full" />
-            )}
+            <img
+              src={img}
+              alt={name}
+              loading="lazy"
+              className="size-full object-cover"
+              onError={onImgError(row.to)}
+            />
           </div>
           <span className="font-medium text-stone-100 transition group-hover:text-brand-300">
             {name}
@@ -156,11 +169,13 @@ function MobileRow({ row, index }: { row: TableRow; index: number }) {
     <Link to={row.to} className="flex items-center gap-3 px-4 py-3">
       <span className="w-5 shrink-0 text-xs text-stone-500">{index}</span>
       <div className="size-12 shrink-0 overflow-hidden rounded-lg bg-panel-2">
-        {img ? (
-          <img src={img} alt={name} loading="lazy" className="size-full object-cover" />
-        ) : (
-          <div className="skeleton size-full" />
-        )}
+        <img
+          src={img}
+          alt={name}
+          loading="lazy"
+          className="size-full object-cover"
+          onError={onImgError(row.to)}
+        />
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate font-medium text-stone-100">{name}</div>

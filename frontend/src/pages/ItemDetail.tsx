@@ -8,6 +8,7 @@ import { useMarket } from "../hooks/useMarket";
 import { useToast } from "../components/Toast";
 import { ipfsToHttp, type TokenMetadata } from "../lib/ipfs";
 import { fmtEth, shortAddr, timeLeft, fmtDate, CURRENCY, humanizeError } from "../lib/format";
+import { fallbackImg } from "../lib/fallbackImg";
 import { EthIcon } from "../components/EthIcon";
 import { MOSAIC_ERC721, erc721Abi } from "../lib/contracts";
 import { Skeleton } from "../components/Skeleton";
@@ -140,69 +141,6 @@ function OnchainDetail({
   );
 }
 
-// Same photo pool as NftCard - must stay in sync.
-const DETAIL_PHOTOS = [
-  "photo-1618005182384-a83a8bd57fbe",
-  "photo-1558618666-fcd25c85cd64",
-  "photo-1604871000636-074fa5117945",
-  "photo-1617791160536-598cf32026fb",
-  "photo-1541701494587-cb58502866ab",
-  "photo-1618172193763-c511deb635ca",
-  "photo-1620641788421-7a1c342ea42e",
-  "photo-1559827260-dc66d52bef19",
-  "photo-1567359781514-3b964e2b04d6",
-  "photo-1553356084-58ef4a67b2a7",
-  "photo-1614850523459-c2f4c699c52e",
-  "photo-1635070041078-e363dbe005cb",
-  "photo-1580927752452-89d86da3fa0a",
-  "photo-1534796636912-3b952d172bf7",
-  "photo-1533134486753-c833f0ed4866",
-  "photo-1547036967-23d11aacaee0",
-  "photo-1518640467707-6811f4a6ab73",
-  "photo-1507525428034-b723cf961d3e",
-  "photo-1519681393784-d120267933ba",
-  "photo-1464822759023-fed622ff2c3b",
-  "photo-1506905925346-21bda4d32df4",
-  "photo-1469474968028-56623f02e42e",
-  "photo-1447752875215-b2761acf3dfd",
-  "photo-1475924156734-496f6cac6ec1",
-  "photo-1433086966358-54859d0ed716",
-  "photo-1465146344425-f00d5f5c8f07",
-  "photo-1418065460487-3e41a6c84dc5",
-  "photo-1502082553048-f009c37129b9",
-  "photo-1490730141103-6cac27aaab94",
-  "photo-1504701954957-2010ec3bcec1",
-  "photo-1511300636408-a63a89df3482",
-  "photo-1500534314209-a25ddb2bd429",
-  "photo-1470071459604-3b5ec3a7fe05",
-  "photo-1444464666168-49d633b86797",
-  "photo-1473773508845-188df298d2d1",
-  "photo-1477346611705-65d1883cee1e",
-  "photo-1546587348-d12660c1961b",
-  "photo-1520116468816-95b69f847357",
-  "photo-1484417894907-623942c8ee29",
-  "photo-1446776811953-b23d57bd21aa",
-  "photo-1419242902214-272b3f66ee7a",
-  "photo-1462275646964-a0e3386b89fa",
-  "photo-1444927182256-02671dd1bc0b",
-  "photo-1419833173245-f59e1b93f9ee",
-  "photo-1430026996702-608b84ce9281",
-  "photo-1426604966848-d7adac402bff",
-  "photo-1423345170965-39c584bf45cb",
-  "photo-1421789665209-c9b2a435e3dc",
-  "photo-1418983948791-3d3ca56f9a75",
-  "photo-1414609245224-aea482020e07",
-  "photo-1412012253572-ce6b3ca7a7b4",
-  "photo-1404308894937-0fb55b699c5c",
-  "photo-1403241076743-76f2b840ddba",
-  "photo-1401838401769-c72f5c68fffa",
-  "photo-1397940007271-e9a5f5b6aab3",
-  "photo-1394426847459-6d58c78e5b49",
-  "photo-1392433702200-7ebb3a38d4f1",
-  "photo-1389307014012-5f6be3bcfad4",
-  "photo-1387037934861-c8f2c8d5e4d1",
-];
-
 function MediaPanel({
   meta,
   loading,
@@ -215,14 +153,7 @@ function MediaPanel({
   const [imgError, setImgError] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ipfsImg = meta?.image ? ipfsToHttp(meta.image) : "";
-  // Use tokenId number from path for same stable assignment as NftCard
-  const parts = tokenPath.split("/");
-  const lastPart = parts[parts.length - 1];
-  const tokenNum = parseInt(lastPart, 10);
-  const idx = isNaN(tokenNum) ? tokenPath.length : tokenNum;
-  const fallback =
-    `https://images.unsplash.com/${DETAIL_PHOTOS[idx % DETAIL_PHOTOS.length]}` +
-    `?auto=format&fit=crop&w=800&q=80&sat=-100`;
+  const fallback = fallbackImg(tokenPath, 800);
   const src = !imgError && ipfsImg ? ipfsImg : fallback;
 
   // Force fallback if IPFS image hasn't loaded within 20 seconds

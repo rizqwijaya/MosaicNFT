@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useMetadata } from "../hooks/useMetadata";
 import { ipfsToHttp } from "../lib/ipfs";
 import { fmtEth, CURRENCY, timeLeft } from "../lib/format";
+import { fallbackImg } from "../lib/fallbackImg";
 import { EthIcon } from "./EthIcon";
 
 export interface TrendItem {
@@ -51,7 +52,8 @@ export function TrendingRail({ items }: { items: TrendItem[] }) {
 
 function TrendCard({ item }: { item: TrendItem }) {
   const { meta } = useMetadata(item.tokenURI);
-  const img = meta?.image ? ipfsToHttp(meta.image) : "";
+  const ipfsImg = meta?.image ? ipfsToHttp(meta.image) : "";
+  const img = ipfsImg || fallbackImg(item.to);
   const name = meta?.name || "Untitled";
   const amount = item.price ?? item.auctionBid;
   const isAuction = item.price == null && item.auctionBid != null;
@@ -62,16 +64,17 @@ function TrendCard({ item }: { item: TrendItem }) {
       className="card group w-[260px] shrink-0 snap-start sm:w-[300px]"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
-        {img ? (
-          <img
-            src={img}
-            alt={name}
-            loading="lazy"
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="skeleton size-full" />
-        )}
+        <img
+          src={img}
+          alt={name}
+          loading="lazy"
+          className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+          onError={(e) => {
+            const el = e.currentTarget;
+            const fb = fallbackImg(item.to);
+            if (el.src !== fb) el.src = fb;
+          }}
+        />
         <span className="absolute left-3 top-3 grid size-7 place-items-center rounded-full bg-black/60 text-xs font-bold text-white backdrop-blur">
           #{item.rank}
         </span>
