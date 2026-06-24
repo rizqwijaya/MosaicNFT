@@ -131,7 +131,7 @@
 
   /* ---- Buttons ---- */
   .btn, .btn-primary, .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-5 py-2.5
            text-sm font-medium transition active:scale-[0.98]
            disabled:cursor-not-allowed disabled:opacity-50;
   }
